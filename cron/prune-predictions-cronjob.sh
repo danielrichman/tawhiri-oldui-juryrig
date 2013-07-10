@@ -3,7 +3,7 @@
 PARAM="mtime"
 AGE="14"
 
-REPOROOT="/var/www/hab/predict/"
+REPOROOT="/var/www/cusf-standalone-predictor/"
 DATADIR="predict/preds"
 
 echo `ls $REPOROOT$DATADIR/ -l | wc -l` "prediction scenarios found"

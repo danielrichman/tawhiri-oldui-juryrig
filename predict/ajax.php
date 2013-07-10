@@ -6,8 +6,6 @@ $stats = new StatsD();
 
 $action = $_GET['action'];
 
-$software_available = array("gfs", "gfs_hd");
-
 switch($action) {
 case "getCSV":
     $uuid = $_GET['uuid'];
@@ -65,7 +63,7 @@ case "getModelByUUID":
     } else {
         // populate the array, JSON encode it and return
         $pred_model = parse_ini_file(PREDS_PATH . $uuid . "/" . SCENARIO_FILE);
-        if ( verifyModel($pred_model, $software_available) ){
+        if ( verifyModel($pred_model) ){
             $pred_model['valid'] = true;
         } else {
             $pred_model['valid'] = false;
@@ -93,7 +91,7 @@ case "submitForm":
         }
 
         // If that worked, make sure the model is valid
-        $verify_dump = verifyModel($pred_model, $software_available);
+        $verify_dump = verifyModel($pred_model);
         if ( !$verify_dump['valid'] ) {
             $json_return['error'] = $verify_dump['msg'];
             echo json_encode($json_return);

@@ -63,21 +63,6 @@ function showMousePos(GLatLng) {
     
 }
 
-// Takes an array of points and the name of the gmap object and plots
-// the polygon onto the map
-function drawPolygon(points, gmap_object) {
-    var newPoly = new google.maps.Polyline({
-        path: points,
-        strokeColor: "#FF0000",
-        strokeOpacity: 0.4,
-        //fillColor: "#FFFFFF",
-        //fillOpacity: 0,
-        strokeWeight: 2
-    });
-    map_items['delta_square'] = newPoly;
-    newPoly.setMap(gmap_object);
-}
-
 // Read the latitude and longitude currently in the launch card and plot
 // a marker there with hover information
 function plotClick() {
@@ -97,32 +82,8 @@ function plotClick() {
             + click_lon+')'
     });
     map_items['clickMarker'] = clickMarker;
-    // Redraw the delta square
-    drawDeltaSquare(map);
     map.panTo(click_pt);
     map.setZoom(8);
-}
-
-// Uses the currently selected lat, lon and delta values in the launch
-// card to draw a square of the GFS data to be downloaded for the prediction
-function drawDeltaSquare(map) {
-    // Clear the old delta square if it exists
-    if ( map_items['delta_square'] ) map_items['delta_square'].setMap(null);
-    // Get the values from the form
-    var lat = Math.round(parseFloat($("#lat").val()));
-    var lon = Math.round(parseFloat($("#lon").val()));
-    var dlat = parseFloat($("#delta_lat").val());
-    var dlon = parseFloat($("#delta_lon").val());
-    // Construct a rectange of points
-    var points = [
-        new google.maps.LatLng(lat+dlat, lon+dlon),
-        new google.maps.LatLng(lat-dlat, lon+dlon),
-        new google.maps.LatLng(lat-dlat, lon-dlon),
-        new google.maps.LatLng(lat+dlat, lon-dlon),
-        new google.maps.LatLng(lat+dlat, lon+dlon)
-    ]
-    // Draw this polygon onto the map canvas
-    drawPolygon(points, map);
 }
 
 // Given a GLatLng object, write the latitude and longitude to the launch card

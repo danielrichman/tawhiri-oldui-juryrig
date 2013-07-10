@@ -61,7 +61,7 @@ function displayOld() {
                         processCompletedPrediction(progress);
                         writePredictionInfo(current_uuid, 
                             progress['run_time'], 
-                            progress['gfs_timestamp']);
+                            progress['dataset']);
                     }
                 });
         }
@@ -76,7 +76,6 @@ function predSub() {
     // Gets in the way of #status_message
     $("#error_window").fadeOut(250);
     // Initialise progress bar
-    $("#prediction_progress").progressbar({ value: 0 });
     $("#prediction_status").html("Sending data to server...");
     $("#status_message").fadeIn(250);
 }
@@ -108,9 +107,6 @@ function populateFormByUUID(pred_uuid) {
             $("#drag").val(data['descent-rate']);
             $("#burst").val(data['burst-altitude']);
             $("#software").val(data.software);
-            $("#delta_lat").val(data['lat-delta']);
-            $("#delta_lon").val(data['lon-delta']);
-            $("#delta_time").val(data['time-delta']);
             // now sort the map out
             SetSiteOther();
             plotClick();
@@ -164,7 +160,7 @@ function changeLaunchSite() {
 
 // Populate and enable the download CSV, KML and Pan To links, and write the 
 // time the prediction was run and the model used to the Scenario Info window
-function writePredictionInfo(current_uuid, run_time, gfs_timestamp) {
+function writePredictionInfo(current_uuid, run_time, dataset) {
     // populate the download links
     $("#dlcsv").attr("href", "preds/"+current_uuid+"/flight_path.csv");
     $("#dlkml").attr("href", "kml.php?uuid="+current_uuid);
@@ -173,7 +169,7 @@ function writePredictionInfo(current_uuid, run_time, gfs_timestamp) {
             //map.setZoom(7);
     });
     $("#run_time").html(POSIXtoHM(run_time, "H:i d/m/Y"));
-    $("#gfs_timestamp").html(gfs_timestamp);
+    $("#dataset").html(dataset);
 }
 
 // Hide the launch card and scenario information windows, then fade out the
@@ -253,8 +249,7 @@ function processCompletedPrediction(progress) {
     getCSV(current_uuid);
     appendDebug("Server gave a prediction run timestamp of " 
         + progress['run_time']);
-    appendDebug("Server said it used the " 
-        + progress['gfs_timestamp'] + " GFS model");
+    appendDebug("Server said it used the " + progress['dataset'] + " GFS Dataset");
 
     var warnings = "<b>The prediction completed, but with warnings!<br>" +
                "The prediction may be unreliable!</b><br><br>";
@@ -269,8 +264,7 @@ function processCompletedPrediction(progress) {
     if (progress['warnings'])
         throwError(warnings);
 
-    writePredictionInfo(current_uuid, progress['run_time'], 
-                        progress['gfs_timestamp']);
+    writePredictionInfo(current_uuid, progress['run_time'], progress['dataset']);
 }
 
 // The contents of progress.json are given to this function to process
@@ -285,33 +279,22 @@ function processProgress(progress) {
         toggleWindow("scenario_template", "showHideDebug", "Show Debug", "Hide Debug", "show");
     } else {
         // get the progress of the wind data
-        if ( progress['gfs_complete'] == true ) {
-            if ( progress['pred_complete'] == true ) { // pred has finished
-                $("#prediction_status").html("Prediction finished.");
-                appendDebug("Server says: the predictor finished running.");
-                appendDebug("Attempting to retrieve flight path from server");
-                // reset the GUI
-                resetGUI();
-                // stop polling for JSON
-                clearInterval(ajaxEventHandle);
-                processCompletedPrediction(progress);
-                addHashLink("uuid="+current_uuid);
-            } else if ( progress['pred_running'] != true ) {
-                $("#prediction_status").html("Waiting for predictor to run...");
-                appendDebug("Server says: predictor not yet running...");
-            } else if ( progress['pred_running'] == true ) {
-                $("#prediction_status").html("Predictor running...");
-                appendDebug("Server says: predictor currently running");
-            }
-        } else {
-            $("#prediction_status").html("Downloading wind data");
-            $("#prediction_progress").progressbar("option", "value",
-                progress['gfs_percent']);
-            $("#prediction_percent").html(progress['gfs_percent'] + 
-                "% - Estimated time remaining: " 
-                + progress['gfs_timeremaining']);
-            appendDebug("Server says: downloaded " +
-                progress['gfs_percent'] + "% of GFS files");
+        if ( progress['pred_complete'] == true ) { // pred has finished
+            $("#prediction_status").html("Prediction finished.");
+            appendDebug("Server says: the predictor finished running.");
+            appendDebug("Attempting to retrieve flight path from server");
+            // reset the GUI
+            resetGUI();
+            // stop polling for JSON
+            clearInterval(ajaxEventHandle);
+            processCompletedPrediction(progress);
+            addHashLink("uuid="+current_uuid);
+        } else if ( progress['pred_running'] != true ) {
+            $("#prediction_status").html("Waiting for predictor to run...");
+            appendDebug("Server says: predictor not yet running...");
+        } else if ( progress['pred_running'] == true ) {
+            $("#prediction_status").html("Predictor running...");
+            appendDebug("Server says: predictor currently running");
         }
     }
     return true;
@@ -320,8 +303,7 @@ function processProgress(progress) {
 // Once a flight path has been returned from the server, this function takes
 // an array where each elemt is a line of that file
 // Constructs the path, plots the launch/land/burst markers, writes the
-// prediction information to the scenario information window and then plots
-// the delta square
+// prediction information to the scenario information window
 function parseCSV(lines) {
     if( lines.length <= 0 ) {
         appendDebug("The server returned an empty CSV file");
@@ -450,10 +432,6 @@ function parseCSV(lines) {
     map_items['pop_marker'] = pop_marker;
     map_items['path_polyline'] = path_polyline;
 
-    // We wiped off the old delta square,
-    // And it may have changed anyway, so re-plot
-    drawDeltaSquare(map);
-    
     // Pan to the new position
     map.panTo(launch_pt);
     map.setZoom(8);

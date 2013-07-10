@@ -64,9 +64,6 @@ google.load("jqueryui", "1.8.1");
 
 <!-- Prediction progress window -->
 <div id="status_message" class="box ui-corner-all">
-    <div id="prediction_progress"></div>
-    <div id="prediction_percent"></div>
-    <br>
     <span id="prediction_status"></span><br>
     <a><span id="showHideDebug_status">Toggle Debug</span></a>
 </div>
@@ -92,7 +89,7 @@ google.load("jqueryui", "1.8.1");
         Cursor range from launch: <span id="cursor_pred_launchrange">?</span>km, 
         land: <span id="cursor_pred_landrange">?</span>km
         <br />
-        Last run at <span id="run_time">?</span> UTC using model <span id="gfs_timestamp">?</span>
+        Last run at <span id="run_time">?</span> UTC using model <span id="dataset">?</span>
         <br />
         <span class="ui-corner-all control_buttons">
             <a class="control_button" id="panto">Pan To</a> | 
@@ -449,36 +446,6 @@ google.load("jqueryui", "1.8.1");
             Descent Rate (<a class="tipsyLink" title="At sea level">m/s</a>):
         </td>
         <td><input id="drag" type="text" name="drag" value="5"></td>
-    </tr>
-    <tr>
-        <td>GFS Definition: </td><td>
-        <select id="software" name="software">
-            <option value="gfs" selected="selected">GFS</option>
-            <option value="gfs_hd">GFS HD</option>
-        </select></td>
-    </tr>
-    <tr><td>Lat/Lon Deltas: </td>
-        <td>Lat: 
-        <select id="delta_lat" name="delta_lat">
-            <option value="3" selected="selected">3</option>
-            <option value="5">5</option>
-            <option value="10">10</option>
-        </select>&nbsp;&nbsp;&nbsp;Lon: 
-        <select id="delta_lon" name="delta_lon">
-            <option value="3" selected="selected">3</option>
-            <option value="5">5</option>
-            <option value="10">10</option>
-        </select>
-        </td>
-    </tr>
-    <tr><td>Time Delta:</td>
-        <td>
-        <select id="delta_time" name="delta_time">
-            <option value="5">~5 hour prediction</option>
-            <option value="10">~10 hour prediction</option>
-            <option value="24">~24 hour prediction</option>
-        </select>
-        </td>
     </tr>
 <!--    <tr><td>Display UK NOTAMS &amp; Airspace: </td>
         <td>

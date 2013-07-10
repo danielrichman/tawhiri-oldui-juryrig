@@ -46,8 +46,6 @@ function resetGUI() {
     $("#error_window").fadeOut(500);
     // now clear the status window
     $("#prediction_status").html("");
-    $("#prediction_progress").progressbar("options", "value", 0);
-    $("#prediction_percent").html("");
     $("#cursor_pred").hide();
     // bring the input form back up
     toggleWindow("input_form", null, null, null, "show");

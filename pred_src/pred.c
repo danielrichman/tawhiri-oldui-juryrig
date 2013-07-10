@@ -56,7 +56,6 @@ int main(int argc, const char *argv[]) {
         gopt_option('i', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset")),
         gopt_option('s', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset_time")),
         gopt_option('d', 0, gopt_shorts('d'), gopt_longs("descending")),
-        gopt_option('e', GOPT_ARG, gopt_shorts('e'), gopt_longs("wind_error")),
         gopt_option('a', GOPT_ARG, gopt_shorts('a'), gopt_longs("alarm"))
     ));
 
@@ -78,7 +77,6 @@ int main(int argc, const char *argv[]) {
         printf(" -i --dataset <filename> Dataset file\n");
         printf(" -s --dataset_time <int> Dataset start time\n\n");
 
-        printf(" -e --wind_error <err>   RMS windspeed error (m/s).\n");
         printf(" -a --alarm <seconds>    Use alarm() to kill pred incase it hangs.\n");
         printf("The scenario file is an INI-like file giving the launch scenario. If it is\n");
         printf("omitted, the scenario is read from standard input.\n");

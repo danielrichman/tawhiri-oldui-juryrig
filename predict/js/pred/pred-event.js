@@ -138,12 +138,6 @@ function EH_LaunchCard() {
         plotClick();
     });
 
-    $("#delta_lat").change(function() {
-        drawDeltaSquare(map);
-    });
-    $("#delta_lon").change(function() {
-        drawDeltaSquare(map);
-    });
     $("#site").change(function() {
         changeLaunchSite();
     });

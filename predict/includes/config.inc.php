@@ -9,13 +9,16 @@ define("ADMIN_EMAIL", "jon@hexoc.com");
 define("LOCATION_SAVE_ENABLE", true);
 
 // Path to the root of the git repo inc. trailing /
-define("ROOT", "/var/www/hab/predict/");
+define("ROOT", "/var/www/predict/");
 
 // Path to python virtualenv to use
-// define("PYTHON", ROOT . "ENV/bin/python");
+define("PYTHON", ROOT . "venv/bin/python");
 
 // Path to prediction data dir from predict/
 define("PREDS_PATH", "preds/");
+
+// Path to the dataset directory from ROOT
+define("DATASET_DIR", ROOT . "tawhiri/datasets");
 
 // Filenames used by the predictor
 define("SCENARIO_FILE", "scenario.ini");

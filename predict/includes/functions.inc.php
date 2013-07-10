@@ -31,14 +31,6 @@ function createModel($post_array) {
     $pred_model['des'] = (float)$post_array['drag'];
     $pred_model['burst'] = (int)$post_array['burst'];
 
-    $pred_model['delta_lat'] = (int)$post_array['delta_lat'];
-    $pred_model['delta_lon'] = (int)$post_array['delta_lon'];
-    $pred_model['delta_time'] = (int)$post_array['delta_time'];
-
-    $pred_model['wind_error'] = 0;
-
-    $pred_model['software'] = $post_array['software'];
-
     // Make a timestamp of the form data
     $pred_model['timestamp'] = mktime($pred_model['hour'], $pred_model['min'], 
         $pred_model['sec'], $pred_model['month'], $pred_model['day'], 
@@ -61,7 +53,7 @@ function makesha1hash($pred_model) {
 
 // Check that the model that we built was valid
 // This involves sanity checking all the parameters
-function verifyModel( $pred_model, $software_available ) {
+function verifyModel( $pred_model ) {
     // Check that we have not been passed an empty model
     if( !isset( $pred_model ) ) return false;
 
@@ -71,32 +63,13 @@ function verifyModel( $pred_model, $software_available ) {
 
     // Iterate though the scenario parameters
     foreach( $pred_model as $idx => $value ) {
-        if ( $idx == "software" ) {
-            if ( !in_array( $value, $software_available ) ) {
-                $return_array['valid'] = false;
-                $return_array['msg'] = "The model asked for software that 
-                    does not exist on this server";
-            }
-        }
-        else if ( !is_numeric( $value ) ) {
+        if ( !is_numeric( $value ) ) {
             $return_array['valid'] = false;
             $return_array['msg'] = "A value that should have been numeric
                 did not validate as such";
         }
 
-        if ( $idx == "delta_lat" || $idx == "delta_lon" ) {
-            if ( $value < 1 || $value > 10 ) {
-                $return_array['valid'] = false;
-                $return_array['msg'] = "The latitude or longitude deltas
-                    were outside the allowed range on this server";
-            }
-        } else if ( $idx == "delta_time" ) {
-            if ( $value < 5 || $value > 24) {
-                $return_array['valid'] = false;
-                $return_array['msg'] = "The time delta was
-                    outside the allowed range on this server";
-            }
-        } else if ( $idx == "asc" || $idx == "des" ) {
+        if ( $idx == "asc" || $idx == "des" ) {
             if ( $value <= 0 ) {
                 $return_array['valid'] = false;
                 $return_array['msg'] = "The ascent and descent rates cannot 
@@ -135,19 +108,9 @@ function runPred($pred_model) {
         makeINI($pred_model);
     }
 
-    // If using GFS HD, then append --hd to the exec string
-    if ( $pred_model['software'] == "gfs_hd" ) $use_hd ="--hd ";
-    else $use_hd = "";
-
-    $predictor_lat = number_format($pred_model['lat'], 0);
-    $predictor_lon = number_format($pred_model['lon'], 0);
-
     $log = PREDS_PATH . $pred_model['uuid'] . "/" . LOG_FILE;
-    $sh = ROOT . "/predict.py --cd=" . ROOT . " --fork --alarm --redirect=predict/$log -v --latdelta="
-        .$pred_model['delta_lat']." --londelta=".$pred_model['delta_lon']
-        ." -p1 -f".$pred_model['delta_time']." -t ".$pred_model['timestamp']
-        ." --lat=".$predictor_lat." --lon=".$predictor_lon." " . $use_hd
-        . $pred_model['uuid'];
+    $sh = ROOT . "/predict.py --cd=" . ROOT . " --fork --alarm --redirect=predict/$log -v "
+        ."-s ". DATASET_DIR ." ". $pred_model['uuid'];
     if (defined("PYTHON"))
         $sh = PYTHON . " " . $sh;
 
@@ -176,18 +139,13 @@ function makeINI($pred_model) { // makes an ini file
     if ($hacked_lon < 0)  $hacked_lon += 360.0;
 
     $w_string = "[launch-site]\nlatitude = " . $pred_model['lat'] . "\naltitude = " . $pred_model['alt'] . "\n";
-    $w_string .= "longitude = " . $hacked_lon . "\n[atmosphere]\nwind-error = ";
-    $w_string .= $pred_model['wind_error'] . "\n[altitude-model]\nascent-rate = " . $pred_model['asc'] . "\n";
+    $w_string .= "longitude = " . $hacked_lon . "\n[atmosphere]\n";
+    $w_string .= "[altitude-model]\nascent-rate = " . $pred_model['asc'] . "\n";
     $w_string .= "descent-rate  = " . $pred_model['des'] . "\nburst-altitude = ";
     $w_string .= $pred_model['burst'] . "\n[launch-time]\nhour = " . $pred_model['hour'] . "\n";
     $w_string .= "month = " . $pred_model['month'] . "\nsecond = " . $pred_model['sec'] . "\n";
     $w_string .= "year = " . $pred_model['year'] . "\nday = " . $pred_model['day'] . "\nminute = ";
     $w_string .= $pred_model['min'] . "\n";
-    // add our predictor stuff
-    $w_string .= "[predictor]\nlat-delta = " . $pred_model['delta_lat'] . "\n";
-    $w_string .= "time-delta = " . $pred_model['delta_time'] . "\n";
-    $w_string .= "lon-delta = " . $pred_model['delta_lon'] . "\nsoftware = ";
-    $w_string .= $pred_model['software'] . "\n";
 
     fwrite($fh, $w_string);
     fclose($fh);
