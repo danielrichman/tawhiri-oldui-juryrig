@@ -159,10 +159,10 @@ def main():
         statsd.increment('error')
         sys.exit(1)
 
-    statsd.increment('dataset.{0}'.format(os.path.basename(dataset_time)))
+    statsd.increment('dataset.{0}'.format(os.path.basename(dataset_filename)))
     log.info("Dataset: %s %s", dataset_filename, dataset_time)
 
-    update_progress(gfs_complete=os.path.basename(dataset_time), pred_running=True)
+    update_progress(dataset=os.path.basename(dataset_filename), pred_running=True)
 
     command = [pred_binary, '-i' + dataset_filename, '-s'+ str(dataset_time),
                '-v', '-o'+uuid_path+'flight_path.csv', uuid_path+'scenario.ini']
