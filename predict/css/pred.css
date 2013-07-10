@@ -168,9 +168,12 @@ a { text-decoration: underline; color: #333; cursor: pointer; }
 	left: 0; bottom: 0; 
 	border-left: none;
 	border-bottom: none;
-        max-height: 400px;
-        overflow: scroll;
-        display: none;
+    display: none;
+}
+
+#scenario_template_scroller {
+    max-height: 400px;
+    overflow: scroll;
 }
 
 #input_form {

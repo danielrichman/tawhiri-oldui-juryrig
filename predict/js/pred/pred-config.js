@@ -13,7 +13,7 @@
 // JavaScript configuration options in this file
 // To keep the index page JS-free
 
-var ajaxEventHandle;
+var ajaxEventHandle, showStatusEventHandle;
 var current_uuid = '0';
 
 var map;
@@ -29,6 +29,8 @@ var clickMarker;
 var ajaxTimeout = 500;
 var maxAjaxTimeout = 2000;
 var deltaAjaxTimeout = 500;
+var firstAjaxDelay = 100; // the predictor runs really fast now
+var showStatusDelay = 100; // if the server responds fast, don't bother fading out
 var stdPeriod = 2000; // standard
 var hlPeriod = 10000; // high latency
 var hlTimeout = 5000; // high latency

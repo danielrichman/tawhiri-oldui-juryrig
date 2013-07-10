@@ -38,7 +38,7 @@ function EH_BurstCalc() {
             $("#ascent,#burst").css("background-color", "#AACCFF");
         },
         function() {
-            $("#ascent,#burst").css("background-color", "#FFFFFF");
+            $("#ascent,#burst").css("background-color", "");
         });
     $("#burst-calc-use").click(function() {
         // Write the ascent rate and burst altitude to the launch card
@@ -128,7 +128,7 @@ function EH_LaunchCard() {
             $("#lat,#lon").css("background-color", "#AACCFF");
         },
         function() {
-            $("#lat,#lon").css("background-color", "#FFFFFF");
+            $("#lat,#lon").css("background-color", "");
         });
     // Launch card parameter onchange event handlers
     $("#lat").change(function() {

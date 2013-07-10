@@ -73,11 +73,12 @@ function displayOld() {
 function predSub() {
     appendDebug(null, 1); // clear debug window
     appendDebug("Sending data to server...");
+    // Disable form
+    $("#modelForm").find("input").attr("disabled", true);
     // Gets in the way of #status_message
     $("#error_window").fadeOut(250);
     // Initialise progress bar
     $("#prediction_status").html("Sending data to server...");
-    $("#status_message").fadeIn(250);
 }
 
 // Make an AJAX request to the server and get the scenario information
@@ -172,17 +173,12 @@ function writePredictionInfo(current_uuid, run_time, dataset) {
     $("#dataset").html(dataset);
 }
 
-// Hide the launch card and scenario information windows, then fade out the
-// map before setting an interval to poll for prediction progress
 function handlePred(pred_uuid) {
-    $("#prediction_status").html("Predicting...");
-    $("#input_form").hide("slide", { direction: "down" }, 500);
-    $("#scenario_info").hide("slide", { direction: "up" }, 500);
-    // disable user control of the map canvas
-    $("#map_canvas").fadeTo(1000, 0.2);
-    // ajax to poll for progress
-    ajaxEventHandle = setInterval("getJSONProgress('" 
-            + pred_uuid + "')", stdPeriod);
+    // shorter timeout for the first ajax request, since the server
+    // typically responds really quickly
+
+    // map fadeout and launch card hiding happens shortly afterwards
+    setTimeout("firstJSONProgress('" + pred_uuid + "')", firstAjaxDelay);
 }
 
 // Get the CSV for a UUID and then pass it to the parseCSV() function
@@ -203,6 +199,25 @@ function getCSV(pred_uuid) {
                     "Please run another prediction.");
             }
     }, 'json');
+}
+
+function firstJSONProgress(pred_uuid) {
+    ajaxEventHandle = setInterval("getJSONProgress('"
+             + pred_uuid + "')", stdPeriod);
+    showStatusEventHandle = setTimeout(showPredictionStatus, showStatusDelay);
+    getJSONProgress(pred_uuid);
+}
+
+// Hide the launch card and scenario information windows, then fade out the
+// map before setting an interval to poll for prediction progress
+function showPredictionStatus() {
+    showStatusEventHandle = null;
+    $("#prediction_status").html("Predicting...");
+    $("#status_message").fadeIn(250);
+    $("#input_form").hide("slide", { direction: "down" }, 500);
+    $("#scenario_info").hide("slide", { direction: "up" }, 500);
+    // disable user control of the map canvas
+    $("#map_canvas").fadeTo(1000, 0.2);
 }
 
 // Called at set inervals to examine the progress.json file on the server for
@@ -258,11 +273,16 @@ function processCompletedPrediction(progress) {
         warnings += progress['pred_output'][i] + "<br>";
     }
 
-    if (progress['pred_output'].length != 0)
-        toggleWindow("scenario_template", "showHideDebug", "Show Debug", "Hide Debug", "show");
-
-    if (progress['warnings'])
+    if (progress['warnings']) {
         throwError(warnings);
+
+        // wait (a little bit) for the CSV to load (produces Debug messages)
+        // so that scrollUp can (hopefully) get the final height of the Debug window,
+        // avoiding a jump. If the delay isn't log enough; no big deal.
+        setTimeout(function () {
+            toggleWindow("scenario_template", "showHideDebug", "Show Debug", "Hide Debug", "show");
+        }, 100);
+    }
 
     writePredictionInfo(current_uuid, progress['run_time'], progress['dataset']);
 }
@@ -371,7 +391,7 @@ function parseCSV(lines) {
     flighttime = f_hours + "hr" + f_minutes;
     $("#cursor_pred_range").html(range);
     $("#cursor_pred_time").html(flighttime);
-    $("#cursor_pred").show();
+    $("#cursor_pred").show().css("visibility", "");
     
     // Make some nice icons
     var launch_icon = new google.maps.MarkerImage(launch_img,

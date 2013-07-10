@@ -58,8 +58,10 @@ google.load("jqueryui", "1.8.1");
 
 <!-- Debug window -->
 <div id="scenario_template" class="box ui-corner-all">
+<div id="scenario_template_scroller">
 <h1>Debug Window</h1>
 <span id="debuginfo">No Messages</span>
+</div>
 </div>
 
 <!-- Prediction progress window -->

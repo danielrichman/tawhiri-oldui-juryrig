@@ -21,7 +21,7 @@ statsd.init_statsd({'STATSD_BUCKET_PREFIX': 'habhub.predictor'})
 
 # Output logger format
 log = logging.getLogger('main')
-log_formatter = logging.Formatter('%(levelname)s: %(message)s')
+log_formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 console = logging.StreamHandler()
 console.setFormatter(log_formatter)
 log.addHandler(console)
@@ -38,6 +38,7 @@ progress = {
 }
 
 def update_progress(**kwargs):
+    log.info("updating progress: %r", kwargs)
     global progress_f
     global progress
     for arg in kwargs:
@@ -178,11 +179,12 @@ def main():
             break
 
         # pass through
-        sys.stdout.write(line)
+        log.info("Pred: %s", line.strip())
         if ("WARN" in line or "ERROR" in line) and len(pred_output) < 10:
             pred_output.append(line.strip())
 
     exit_code = pred_process.wait()
+    log.info("Pred exited, %s", exit_code)
 
     if exit_code == 1:
         # Hard error from the predictor. Tell the javascript it completed, so that it will show the trace,
@@ -190,8 +192,8 @@ def main():
         update_progress(pred_running=False, pred_complete=True, warnings=True, pred_output=pred_output)
         statsd.increment('success_serious_warnings')
     elif pred_output:
-        # Soft error (altitude too low error, typically): pred_output being set forces the debug
-        # window open with the messages in
+        # Soft error (either altitude too low error or too high)
+        # we used to show the debug window when this happened, but do not any more (!)
         update_progress(pred_running=False, pred_complete=True, pred_output=pred_output)
         statsd.increment('success_minor_warnings')
     else:

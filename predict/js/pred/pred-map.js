@@ -128,7 +128,7 @@ function setLatLonByClick(state) {
 // An associative array exists globally containing all objects we have placed
 // onto the map canvas - this function clears all of them
 function clearMapItems() {
-    $("#cursor_pred").hide();
+    $("#cursor_pred").css("visibility", "hidden");
     if( getAssocSize(map_items) > 0 ) {
         appendDebug("Clearing previous map trace");
         for( i in map_items ) {

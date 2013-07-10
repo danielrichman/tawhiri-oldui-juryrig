@@ -42,11 +42,18 @@ function throwError(data) {
 
 // Reset the GUI to a onLoad state ready for a new prediction to be shown
 function resetGUI() {
+    if (showStatusEventHandle) {
+        clearTimeout(showStatusEventHandle);
+        showStatusEventHandle = null;
+    }
+    
     $("#status_message").fadeOut(500);
     $("#error_window").fadeOut(500);
+    $("#modelForm").find("input").attr("disabled", false);
+
     // now clear the status window
     $("#prediction_status").html("");
-    $("#cursor_pred").hide();
+    $("#cursor_pred").css("visibility", "hidden");
     // bring the input form back up
     toggleWindow("input_form", null, null, null, "show");
     toggleWindow("scenario_info", null, null, null, "show");
@@ -65,12 +72,12 @@ function appendDebug(appendage, clear) {
         $("#debuginfo").html("");
     }
     // keep the debug window scrolled to bottom
-    scrollToBottom("scenario_template");
+    scrollToBottom("scenario_template_scroller");
 }
 
 // A function to scroll a scrollable <div> all the way to the bottom
 function scrollToBottom(div_id) {
-    $("#"+div_id).animate({scrollTop: $("#"+div_id)[0].scrollHeight});
+    $("#"+div_id).stop().animate({scrollTop: $("#"+div_id)[0].scrollHeight});
 }
 
 // Show or hide GUI windows, can either "toggle", or force hide/show
@@ -79,20 +86,20 @@ function scrollToBottom(div_id) {
 function toggleWindow(window_name, linker, onhide, onshow, force) {
     if ( force == null ) {
         if( $("#"+window_name).css('display') != "none" ){
-            $("#"+window_name+"").hide("slide", { direction: "down" }, 500);
+            $("#"+window_name+"").stop(true, true).hide("slide", { direction: "down" }, 500);
             $("#"+linker).html(onhide);
         } else {
-            $("#"+window_name).show("slide", { direction: "down" }, 500);
+            $("#"+window_name).stop(true, true).show("slide", { direction: "down" }, 500);
             $("#"+linker).html(onshow);
         }
     } else if ( force == "hide" ) {
         if( $("#"+window_name).css('display') != "none" ){
-            $("#"+window_name+"").hide("slide", { direction: "down" }, 500);
+            $("#"+window_name+"").stop(true, true).hide("slide", { direction: "down" }, 500);
             $("#"+linker).html(onhide);
         }
     } else if ( force == "show") {
         if( $("#"+window_name).css('display') == "none" ){
-            $("#"+window_name).show("slide", { direction: "down" }, 500);
+            $("#"+window_name).stop(true, true).show("slide", { direction: "down" }, 500);
             $("#"+linker).html(onshow);
         }
     } else {
