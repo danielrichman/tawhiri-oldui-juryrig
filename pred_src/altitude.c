@@ -22,23 +22,23 @@
 // get density of atmosphere at a given altitude
 // uses NASA model from http://www.grc.nasa.gov/WWW/K-12/airplane/atmosmet.html
 // units of degrees celcius, metres, KPa and Kg/metre cubed
-static float get_density(float altitude);
+static double get_density(double altitude);
 
 #define G 9.8
 
 struct altitude_model_s
 {
-    float   burst_altitude;
-    float   ascent_rate;
-    float   drag_coeff;
+    double   burst_altitude;
+    double   ascent_rate;
+    double   drag_coeff;
     int     descent_mode;
 
-    float   initial_alt;
+    double   initial_alt;
     int     burst_time;
 };
 
 altitude_model_t*
-altitude_model_new(int dec_mode, float burst_alt, float asc_rate, float drag_co) 
+altitude_model_new(int dec_mode, double burst_alt, double asc_rate, double drag_co) 
 {
     altitude_model_t* self = (altitude_model_t*)malloc(sizeof(altitude_model_t));
 
@@ -63,7 +63,7 @@ altitude_model_free(altitude_model_t* self)
 }
 
 int 
-altitude_model_get_altitude(altitude_model_t* self, int time_into_flight, float* alt) {
+altitude_model_get_altitude(altitude_model_t* self, int time_into_flight, double* alt) {
     // TODO: this section needs some work to make it more flexible
     
     // time == 0 so setup initial altitude stuff
@@ -105,9 +105,9 @@ altitude_model_get_altitude(altitude_model_t* self, int time_into_flight, float*
     
 }
 
-float get_density(float altitude) {
+double get_density(double altitude) {
     
-    float temp = 0.f, pressure = 0.f;
+    double temp = 0.0, pressure = 0.0;
     
     if (altitude > 25000) {
         temp = -131.21 + 0.00299 * altitude;

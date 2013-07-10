@@ -17,7 +17,7 @@
 #define VERSION "0.0.1"
 
 // write a position entry into the output files
-void write_position(float lat, float lng, float alt, int timestamp);
+void write_position(double lat, double lng, double alt, int timestamp);
 
 // start and finish KML files, basically just write header and footer in
 void start_kml();

@@ -23,36 +23,36 @@
 
 extern int verbosity;
 
-#define RADIUS_OF_EARTH 6371009.f
+#define RADIUS_OF_EARTH 6371009.0
 
 typedef struct model_state_s model_state_t;
 struct model_state_s
 {
-    float               lat;
-    float               lng;
-    float               alt;
+    double              lat;
+    double              lng;
+    double              alt;
     altitude_model_t   *alt_model;
 };
 
 // Get the distance (in metres) of one degree of latitude and one degree of
 // longitude. This varys with height (not much grant you).
 static void
-_get_frame(float lat, float lng, float alt, 
-        float *d_dlat, float *d_dlng)
+_get_frame(double lat, double lng, double alt, 
+           double *d_dlat, double *d_dlng)
 {
-    float theta, r;
+    double theta, r;
 
-    theta = 2.f * M_PI * (90.f - lat) / 360.f;
+    theta = 2.0 * M_PI * (90.0 - lat) / 360.0;
     r = RADIUS_OF_EARTH + alt;
 
     // See the differentiation section of
     // http://en.wikipedia.org/wiki/Spherical_coordinate_system
 
     // d/dv = d/dlat = -d/dtheta
-    *d_dlat = (2.f * M_PI) * r / 360.f;
+    *d_dlat = (2.0 * M_PI) * r / 360.0;
 
     // d/du = d/dlong = d/dphi
-    *d_dlng = (2.f * M_PI) * r * sinf(theta) / 360.f;
+    *d_dlng = (2.0 * M_PI) * r * sinf(theta) / 360.0;
 }
 
 static int 
@@ -61,7 +61,7 @@ _advance_one_timestep(struct dataset *dataset,
                       unsigned long timestamp, unsigned long initial_timestamp,
                       model_state_t *state)
 {
-    float ddlat, ddlng;
+    double ddlat, ddlng;
     double wind_v, wind_u;
 
     if(!altitude_model_get_altitude(state->alt_model, 
@@ -86,7 +86,7 @@ _advance_one_timestep(struct dataset *dataset,
 }
 
 int run_model(struct dataset *dataset, altitude_model_t* alt_model,
-              float initial_lat, float initial_lng, float initial_alt,
+              double initial_lat, double initial_lng, double initial_alt,
               long int initial_timestamp)
 {
     model_state_t state;

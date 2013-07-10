@@ -35,8 +35,8 @@ int main(int argc, const char *argv[]) {
     const char* argument;
     
     long int initial_timestamp, dataset_time;
-    float initial_lat, initial_lng, initial_alt;
-    float burst_alt, ascent_rate, drag_coeff;
+    double initial_lat, initial_lng, initial_alt;
+    double burst_alt, ascent_rate, drag_coeff;
     int descent_mode;
     int scenario_idx, n_scenarios;
     int alarm_time;
@@ -54,7 +54,7 @@ int main(int argc, const char *argv[]) {
         gopt_option('k', GOPT_ARG, gopt_shorts('k'), gopt_longs("kml")),
         gopt_option('t', GOPT_ARG, gopt_shorts('t'), gopt_longs("start_time")),
         gopt_option('i', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset")),
-        gopt_option('s', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset_time")),
+        gopt_option('s', GOPT_ARG, gopt_shorts('s'), gopt_longs("dataset_time")),
         gopt_option('d', 0, gopt_shorts('d'), gopt_longs("descending")),
         gopt_option('a', GOPT_ARG, gopt_shorts('a'), gopt_longs("alarm"))
     ));
@@ -318,7 +318,7 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void write_position(float lat, float lng, float alt, int timestamp) {
+void write_position(double lat, double lng, double alt, int timestamp) {
     // the predictor uses 0<=lng<360; most other things expect -180<lng<=180
     if (lng > 180)
         lng -= 360;

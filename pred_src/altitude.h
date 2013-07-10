@@ -20,9 +20,9 @@ typedef struct altitude_model_s altitude_model_t;
 // calling run_model if descent_mode is DESCENT_MODE_DESCENDING then we start
 // off with the balloon descending i.e. after burst
 altitude_model_t    *altitude_model_new    (int                 descent_mode, 
-                                            float               burst_alt, 
-                                            float               ascent_rate,
-                                            float               drag_coeff);
+                                            double              burst_alt, 
+                                            double              ascent_rate,
+                                            double              drag_coeff);
 
 // free resources associated with the specified altitude model.
 void                 altitude_model_free   (altitude_model_t   *model);
@@ -35,7 +35,7 @@ void                 altitude_model_free   (altitude_model_t   *model);
 int                  altitude_model_get_altitude
                                            (altitude_model_t   *model,
                                             int                 time_into_flight, 
-                                            float              *alt);
+                                            double             *alt);
 
 
 

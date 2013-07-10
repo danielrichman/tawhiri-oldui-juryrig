@@ -19,7 +19,7 @@
 
 // run the model
 int run_model(struct dataset *dataset, altitude_model_t* alt_model,
-              float initial_lat, float initial_lng, float initial_alt, 
+              double initial_lat, double initial_lng, double initial_alt, 
 	          long int initial_timestamp);
 
 #define TIMESTEP 1          // in seconds
