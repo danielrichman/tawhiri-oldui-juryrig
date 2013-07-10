@@ -13,17 +13,15 @@ link_directories(${GLIB_LIBRARY_DIRS})
 add_executable(pred
 	util/gopt.c
 	util/getdelim.c
-	util/random.h
 	util/gopt.h
 	util/getline.h
 	util/getline.c
 	util/getdelim.h
-	util/random.c
 	altitude.h
-	wind/wind_file_cache.c
-	wind/wind_file_cache.h
-	wind/wind_file.c
-	wind/wind_file.h
+	dataset.c
+	dataset.h
+	tawhiri_axes.c
+	tawhiri_axes.h
 	altitude.c
 	pred.c
 	run_model.c
@@ -36,3 +34,5 @@ add_executable(pred
 )
 
 target_link_libraries(pred ${GLIB_LIBRARIES} -lm)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long")

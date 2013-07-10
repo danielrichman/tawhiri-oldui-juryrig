@@ -20,7 +20,7 @@
 
 #include "ini/iniparser.h"
 #include "util/gopt.h"
-#include "wind/wind_file_cache.h"
+#include "dataset.h"
 
 #include "run_model.h"
 #include "pred.h"
@@ -28,22 +28,21 @@
 
 FILE* output;
 FILE* kml_file;
-const char* data_dir;
 int verbosity;
 
 int main(int argc, const char *argv[]) {
     
     const char* argument;
     
-    long int initial_timestamp;
+    long int initial_timestamp, dataset_time;
     float initial_lat, initial_lng, initial_alt;
-    float burst_alt, ascent_rate, drag_coeff, rmswinderror;
+    float burst_alt, ascent_rate, drag_coeff;
     int descent_mode;
     int scenario_idx, n_scenarios;
     int alarm_time;
     char* endptr;       // used to check for errors on strtod calls 
     
-    wind_file_cache_t* file_cache;
+    struct dataset dataset;
     dictionary*        scenario = NULL;
     
     // configure command-line options parsing
@@ -54,7 +53,8 @@ int main(int argc, const char *argv[]) {
         gopt_option('o', GOPT_ARG, gopt_shorts('o'), gopt_longs("output")),
         gopt_option('k', GOPT_ARG, gopt_shorts('k'), gopt_longs("kml")),
         gopt_option('t', GOPT_ARG, gopt_shorts('t'), gopt_longs("start_time")),
-        gopt_option('i', GOPT_ARG, gopt_shorts('i'), gopt_longs("data_dir")),
+        gopt_option('i', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset")),
+        gopt_option('s', GOPT_ARG, gopt_shorts('i'), gopt_longs("dataset_time")),
         gopt_option('d', 0, gopt_shorts('d'), gopt_longs("descending")),
         gopt_option('e', GOPT_ARG, gopt_shorts('e'), gopt_longs("wind_error")),
         gopt_option('a', GOPT_ARG, gopt_shorts('a'), gopt_longs("alarm"))
@@ -75,7 +75,9 @@ int main(int argc, const char *argv[]) {
         printf(" -k --kml <file>         Output KML file.\n");
         printf(" -d --descending         We are in the descent phase of the flight, i.e. after\n");
         printf("                           burst or cutdown. burst_alt and ascent_rate ignored.\n");
-        printf(" -i --data_dir <dir>     Input directory for wind data, defaults to current dir.\n\n");
+        printf(" -i --dataset <filename> Dataset file\n");
+        printf(" -s --dataset_time <int> Dataset start time\n\n");
+
         printf(" -e --wind_error <err>   RMS windspeed error (m/s).\n");
         printf(" -a --alarm <seconds>    Use alarm() to kill pred incase it hangs.\n");
         printf("The scenario file is an INI-like file giving the launch scenario. If it is\n");
@@ -125,12 +127,27 @@ int main(int argc, const char *argv[]) {
       initial_timestamp = time(NULL);
     }
     
-    if (!(gopt_arg(options, 'i', &data_dir) && strcmp(data_dir, "-")))
-      data_dir = "./";
 
+    if (!gopt_arg(options, 's', &argument)) {
+      fprintf(stderr, "ERROR: dataset start time is required\n");
+      exit(1);
+    }
 
-    // populate wind data file cache
-    file_cache = wind_file_cache_new(data_dir);
+    dataset_time = strtol(argument, &endptr, 0);
+    if (endptr == argument) {
+      fprintf(stderr, "ERROR: %s: invalid dataset start timestamp\n", argument);
+      exit(1);
+    }
+
+    if (!gopt_arg(options, 'i', &argument)) {
+      fprintf(stderr, "ERROR: dataset is required\n");
+      exit(1);
+    }
+
+    if (dataset_open(argument, dataset_time, &dataset) != 0) {
+      fprintf(stderr, "ERROR: failed to open dataset %s\n", argument);
+      exit(1);
+    }
 
     // read in flight parameters
     n_scenarios = argc - 1;
@@ -205,15 +222,6 @@ int main(int argc, const char *argv[]) {
 
         burst_alt = iniparser_getdouble(scenario, "altitude-model:burst-altitude", 1.0);
 
-        rmswinderror = iniparser_getdouble(scenario, "atmosphere:wind-error", 0.0);
-        if(gopt_arg(options, 'e', &argument) && strcmp(argument, "-")) {
-            rmswinderror = strtod(argument, &endptr);
-            if (endptr == argument) {
-                fprintf(stderr, "ERROR: %s: invalid RMS wind speed error\n", argument);
-                exit(1);
-            }
-        }
-
         {
             int year, month, day, hour, minute, second;
             year = iniparser_getint(scenario, "launch-time:year", -1);
@@ -269,7 +277,6 @@ int main(int argc, const char *argv[]) {
                 fprintf(stderr, "    - Ascent rate       : %lf m/s\n", ascent_rate);
                 fprintf(stderr, "    - Burst alt.        : %lf m\n", burst_alt);
             }
-            fprintf(stderr, "    - Windspeed err.    : %f m/s\n", rmswinderror);
         }
         
         {
@@ -281,9 +288,8 @@ int main(int argc, const char *argv[]) {
                     exit(1);
             }
 
-            if (!run_model(file_cache, alt_model, 
-                           initial_lat, initial_lng, initial_alt, initial_timestamp,
-                           rmswinderror)) {
+            if (!run_model(&dataset, alt_model, 
+                           initial_lat, initial_lng, initial_alt, initial_timestamp)) {
                     fprintf(stderr, "ERROR: error during model run!\n");
                     exit(1);
             }
@@ -308,8 +314,8 @@ int main(int argc, const char *argv[]) {
     // release gopt data, 
     gopt_free(options);
 
-    // release the file cache resources.
-    wind_file_cache_free(file_cache);
+    // close the dataset
+    dataset_close(&dataset);
 
     return 0;
 }
