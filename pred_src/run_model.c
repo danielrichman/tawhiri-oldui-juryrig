@@ -73,9 +73,18 @@ _advance_one_timestep(struct dataset *dataset,
     while (state->lng < 0)    state->lng += 360;
     while (state->lng > 360)  state->lng -= 360;
 
+    if (timestamp - dataset->start_time >= axis_0_hour[shape[0] - 1] * 3600) {
+        fprintf(stderr, "ERROR: prediction reached end of dataset (time axis)\n");
+        return -1;
+    }
+
     if(!get_wind(dataset, state->lat, state->lng, state->alt, timestamp, 
                 &wind_v, &wind_u))
+    {
+        fprintf(stderr, "ERROR: couldn't get wind for %f, %f alt %f at %li (point not in dataset?)\n",
+                state->lat, state->lng, state->alt, timestamp);
         return -1; // error
+    }
 
     _get_frame(state->lat, state->lng, state->alt, &ddlat, &ddlng);
 
