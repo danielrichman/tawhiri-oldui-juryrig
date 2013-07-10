@@ -79,8 +79,8 @@ _advance_one_timestep(struct dataset *dataset,
 
     _get_frame(state->lat, state->lng, state->alt, &ddlat, &ddlng);
 
-    state->lat += delta_t / ddlat;
-    state->lng += delta_t / ddlng;
+    state->lat += wind_v * delta_t / ddlat;
+    state->lng += wind_u * delta_t / ddlng;
 
     return 1; // OK, and continue
 }
