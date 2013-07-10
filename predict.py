@@ -167,7 +167,7 @@ def main():
     command = [pred_binary, '-i' + dataset_filename, '-s'+ str(dataset_time),
                '-v', '-o'+uuid_path+'flight_path.csv', uuid_path+'scenario.ini']
     if options.alarm:
-        command.append("-a120")
+        command.append("-a10")
 
     pred_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     pred_output = []
@@ -204,7 +204,7 @@ def time_for_dataset_name(filename):
 
 def latest_dataset(directory):
     choices = os.listdir(directory)
-    for choice in choices:
+    for choice in sorted(choices, reverse=True):  # reverse alphabetical will give newest first
         try:
             when = timelib.strptime(choice, "%Y%m%d%H")
         except ValueError:

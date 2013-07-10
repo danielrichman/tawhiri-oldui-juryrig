@@ -175,7 +175,7 @@ function writePredictionInfo(current_uuid, run_time, dataset) {
 // Hide the launch card and scenario information windows, then fade out the
 // map before setting an interval to poll for prediction progress
 function handlePred(pred_uuid) {
-    $("#prediction_status").html("Searching for wind data...");
+    $("#prediction_status").html("Predicting...");
     $("#input_form").hide("slide", { direction: "down" }, 500);
     $("#scenario_info").hide("slide", { direction: "up" }, 500);
     // disable user control of the map canvas
