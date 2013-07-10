@@ -14,7 +14,6 @@
 
 static const int pressure_hint_fail = -16; // -1 <= hint <= length - 1
 static const double tol = 1e-7;
-static const double lambda_fail = -1;
 
 // for passing and returning multiple values from a get_wind functions
 // concisely
@@ -122,7 +121,7 @@ int get_wind(struct dataset *d,
     // use of lambda_axes serves to assert that the index calculations
     // are correct
 
-    hour = (timestamp - d->start_time) / 3600;
+    hour = ((double) (timestamp - d->start_time)) / 3600;
 
     p3.hour_before = hour / 3;
     if (p3.hour_before < 0 || p3.hour_before >= shape[0] - 1)
@@ -272,11 +271,6 @@ static struct level height_search(struct dataset *d, int hour_index,
                 level.pressure_index = *hint = -1;
                 return level;
             }
-            else
-            {
-                height_below = interp_variable(d, hour_index, below, 0, p);
-                height_above = hint_height_below;
-            }
         }
         else // hint_height_above < height
         {
@@ -295,13 +289,11 @@ static struct level height_search(struct dataset *d, int hour_index,
                 level.pressure_index = length - 1;
                 return level;
             }
-            else
-            {
-                height_below = hint_height_above;
-                height_above = interp_variable(d, hour_index, above, 0, p);
-            }
         }
     }
+
+    height_below = interp_variable(d, hour_index, below, 0, p);
+    height_above = interp_variable(d, hour_index, above, 0, p);
 
     while (above - below > 1)
     {
@@ -309,12 +301,12 @@ static struct level height_search(struct dataset *d, int hour_index,
         int mid = (above + below) / 2;
         double mid_height = interp_variable(d, hour_index, mid, 0, p);
 
-        if (mid_height <= height)
+        if (height <= mid_height)
         {
             above = mid;
             height_above = mid_height;
         }
-        else // (height < mid_height)
+        else // (mid_height < height)
         {
             below = mid;
             height_below = mid_height;
@@ -360,7 +352,7 @@ static double interp_variable2(struct dataset *d, int hour_index,
         interp_variable(d, hour_index, level.pressure_index,
                         variable, p);
     double variable_above =
-        interp_variable(d, hour_index, level.pressure_index,
+        interp_variable(d, hour_index, level.pressure_index + 1,
                         variable, p);
     return lerp(variable_below, variable_above, height_lambda);
 }
@@ -386,17 +378,13 @@ static double lambda(double left, double right, double value)
     double l = offset / width;
     if (l < 0.0)
     {
-        if (-tol < l)
-            l = 0.0;
-        else
-            return lambda_fail;
+        assert(-tol < l);
+        l = 0.0;
     }
     if (1.0 < l)
     {
-        if (l < 1 + tol)
-            l = 1.0;
-        else
-            return lambda_fail;
+        assert(l < 1 + tol);
+        l = 1.0;
     }
     return l;
 }
