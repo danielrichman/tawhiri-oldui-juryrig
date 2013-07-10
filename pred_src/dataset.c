@@ -124,7 +124,7 @@ int get_wind(struct dataset *d,
     hour = ((double) (timestamp - d->start_time)) / 3600;
 
     p3.hour_before = hour / 3;
-    if (p3.hour_before < 0 || p3.hour_before >= shape[0] - 1)
+    if (hour < 0 || p3.hour_before < 0 || p3.hour_before >= shape[0] - 1)
         return 0;
     p3.hour_lambda = lambda(axis_0_hour[p3.hour_before],
                             axis_0_hour[p3.hour_before + 1],
@@ -260,40 +260,39 @@ static struct level height_search(struct dataset *d, int hour_index,
             // above - below until the window includes the target height.
             // caveats: may interp some heights twice, bsearch is quick anyway
             above = *hint;
-
-            if (below == above) // == 0
-            {
-                fprintf(stderr, "WARN: moved to %.2fm, below height where we "
-                                "have data. Assuming we're at %imb or approx "
-                                "%.2fm\n",
-                        height, axis_1_pressure[0], hint_height_below);
-                level.height_below = level.height_above = hint_height_below;
-                level.pressure_index = *hint = -1;
-                return level;
-            }
         }
         else // hint_height_above < height
         {
             below = *hint + 1;
-
-            if (below == above) // == length - 1
-            {
-                // warn once when entering; then quick path via hint doesn't
-                // show the warning.
-                fprintf(stderr, "WARN: moved to %.2fm, above height where we "
-                                "have data. Assuming we're at %imb or approx "
-                                "%.2fm\n",
-                        height, axis_1_pressure[length - 1],
-                        hint_height_above);
-                level.height_below = level.height_above = hint_height_above;
-                level.pressure_index = length - 1;
-                return level;
-            }
         }
     }
 
     height_below = interp_variable(d, hour_index, below, 0, p);
     height_above = interp_variable(d, hour_index, above, 0, p);
+
+    if (height < height_below)
+    {
+        // warn once when entering; then quick path via hint doesn't
+        // show the warning.
+        fprintf(stderr, "WARN: moved to %.2fm, below height where we "
+                        "have data. Assuming we're at %imb or approx "
+                        "%.2fm\n",
+                height, axis_1_pressure[0], height_below);
+        level.height_below = level.height_above = height_below;
+        level.pressure_index = *hint = -1;
+        return level;
+    }
+    else if (height > height_above)
+    {
+        fprintf(stderr, "WARN: moved to %.2fm, above height where we "
+                        "have data. Assuming we're at %imb or approx "
+                        "%.2fm\n",
+                height, axis_1_pressure[length - 1],
+                height_above);
+        level.height_below = level.height_above = height_above;
+        level.pressure_index = length - 1;
+        return level;
+    }
 
     while (above - below > 1)
     {
@@ -346,15 +345,26 @@ static double interp_variable2(struct dataset *d, int hour_index,
                                struct level level, double height,
                                int variable, struct interp p)
 {
-    double height_lambda =
-        lambda(level.height_below, level.height_above, height);
-    double variable_below =
-        interp_variable(d, hour_index, level.pressure_index,
-                        variable, p);
-    double variable_above =
-        interp_variable(d, hour_index, level.pressure_index + 1,
-                        variable, p);
-    return lerp(variable_below, variable_above, height_lambda);
+    if (level.pressure_index == -1)
+    {
+        return interp_variable(d, hour_index, 0, variable, p);
+    }
+    else if (level.pressure_index == shape[1] - 1)
+    {
+        return interp_variable(d, hour_index, shape[1] - 1, variable, p);
+    }
+    else
+    {
+        double height_lambda =
+            lambda(level.height_below, level.height_above, height);
+        double variable_below =
+            interp_variable(d, hour_index, level.pressure_index,
+                            variable, p);
+        double variable_above =
+            interp_variable(d, hour_index, level.pressure_index + 1,
+                            variable, p);
+        return lerp(variable_below, variable_above, height_lambda);
+    }
 }
 
 // for fixed variable
@@ -375,7 +385,9 @@ static double lambda(double left, double right, double value)
 {
     double width = right - left;
     double offset = value - left;
-    double l = offset / width;
+    double l;
+    assert(width != 0);
+    l = offset / width;
     if (l < 0.0)
     {
         assert(-tol < l);
