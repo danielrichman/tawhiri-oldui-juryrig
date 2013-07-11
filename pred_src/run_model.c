@@ -110,6 +110,8 @@ int run_model(struct dataset *dataset, altitude_model_t* alt_model,
     int log_counter = 0; // only write position to output files every LOG_DECIMATE timesteps
     int r, return_code = 1;
 
+    write_position(state.lat, state.lng, state.alt, timestamp);
+
     while(1)
     {
         r = _advance_one_timestep(dataset, TIMESTEP, timestamp, initial_timestamp, &state);
