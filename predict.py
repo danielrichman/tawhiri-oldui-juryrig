@@ -213,6 +213,8 @@ def latest_dataset(directory):
             pass
         else:
             return os.path.join(directory, choice), calendar.timegm(when)
+    else:
+        raise ValueError("No datasets!")
 
 def detach_process(redirect):
     # Fork
