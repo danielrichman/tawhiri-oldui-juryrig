@@ -3,12 +3,12 @@
 PARAM="mtime"
 AGE="14"
 
-REPOROOT="/var/www/cusf-standalone-predictor/"
+REPOROOT="/var/www/predict/"
 DATADIR="predict/preds"
 
-echo `ls $REPOROOT$DATADIR/ -l | wc -l` "prediction scenarios found"
-echo `find $REPOROOT$DATADIR/* -maxdepth 0 -$PARAM +$AGE | wc -l` "of them had $PARAM of more than $AGE days"
+echo `ls $REPOROOT$DATADIR/ | wc -l` "prediction scenarios found"
+echo `find $REPOROOT$DATADIR/ -maxdepth 1 -type d -$PARAM +$AGE | wc -l` "of them had $PARAM of more than $AGE days"
 echo "Now deleting..."
-find $REPOROOT$DATADIR/* -maxdepth 0 -$PARAM +$AGE -exec rm -rf {} \;
+find $REPOROOT$DATADIR/ -maxdepth 1 -type d -$PARAM +$AGE -exec rm -rf {} \;
 echo "Done deleting."
-echo `ls $REPOROOT$DATADIR/ -l | wc -l` "prediction scenarios remaining"
+echo `ls $REPOROOT$DATADIR/ | wc -l` "prediction scenarios remaining"
