@@ -102,9 +102,9 @@ function EH_LaunchCard() {
                 appendDebug("The server rejected the submitted form data:");
                 appendDebug(data.error);
                 // And throw an error window to alert the user of what happened
+                resetGUI();
                 throwError("The server rejected the submitted form data: \n"
                     + data.error);
-                resetGUI();
             } else if ( data.valid == "true" ) {
                 predSub();
                 appendDebug("The server accepted the form data");

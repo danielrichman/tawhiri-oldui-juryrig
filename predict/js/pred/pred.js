@@ -178,7 +178,7 @@ function handlePred(pred_uuid) {
     // typically responds really quickly
 
     // map fadeout and launch card hiding happens shortly afterwards
-    setTimeout("firstJSONProgress('" + pred_uuid + "')", firstAjaxDelay);
+    firstJSONProgressHandle = setTimeout("firstJSONProgress('" + pred_uuid + "')", firstAjaxDelay);
 }
 
 // Get the CSV for a UUID and then pass it to the parseCSV() function
@@ -202,6 +202,7 @@ function getCSV(pred_uuid) {
 }
 
 function firstJSONProgress(pred_uuid) {
+    firstJSONProgressHandle = null;
     ajaxEventHandle = setInterval("getJSONProgress('"
              + pred_uuid + "')", stdPeriod);
     showStatusEventHandle = setTimeout(showPredictionStatus, showStatusDelay);

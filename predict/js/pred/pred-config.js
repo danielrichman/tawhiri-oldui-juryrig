@@ -13,7 +13,7 @@
 // JavaScript configuration options in this file
 // To keep the index page JS-free
 
-var ajaxEventHandle, showStatusEventHandle;
+var ajaxEventHandle, showStatusEventHandle, firstJSONProgressHandle;
 var current_uuid = '0';
 
 var map;

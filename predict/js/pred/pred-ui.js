@@ -46,6 +46,10 @@ function resetGUI() {
         clearTimeout(showStatusEventHandle);
         showStatusEventHandle = null;
     }
+    if (firstJSONProgressHandle) {
+        clearTimeout(firstJSONProgressHandle);
+        firstJSONProgressHandle = null;
+    }
     
     $("#status_message").fadeOut(500);
     $("#error_window").fadeOut(500);
