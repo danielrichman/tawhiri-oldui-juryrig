@@ -392,7 +392,7 @@ function parseCSV(lines) {
     flighttime = f_hours + "hr" + f_minutes;
     $("#cursor_pred_range").html(range);
     $("#cursor_pred_time").html(flighttime);
-    $("#cursor_pred").show().css("visibility", "");
+    cursorPredShow();
     
     // Make some nice icons
     var launch_icon = new google.maps.MarkerImage(launch_img,

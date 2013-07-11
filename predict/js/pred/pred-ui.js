@@ -57,12 +57,32 @@ function resetGUI() {
 
     // now clear the status window
     $("#prediction_status").html("");
-    $("#cursor_pred").css("visibility", "hidden");
+    cursorPredHide();
+
     // bring the input form back up
     toggleWindow("input_form", null, null, null, "show");
     toggleWindow("scenario_info", null, null, null, "show");
     // un-fade the map canvas
     $("#map_canvas").fadeTo(1500, 1);
+}
+
+// Prevent flicker on fast responses by delaying hide for a small time
+function cursorPredHide() {
+    if (cursorPredHideHandle)
+        return;
+
+    cursorPredHideHandle = setTimeout(function () {
+        cursorPredHideHandle = null;
+        $("#cursor_pred").hide();
+    }, firstAjaxDelay + showStatusDelay);
+}
+
+function cursorPredShow() {
+    if (cursorPredHideHandle) {
+        clearTimeout(cursorPredHideHandle);
+        cursorPredHideHandle = null;
+    }
+    $("#cursor_pred").show();
 }
 
 // Append a line to the debug window and scroll the window to the bottom
