@@ -36,3 +36,5 @@ add_executable(pred
 target_link_libraries(pred ${GLIB_LIBRARIES} -lm)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -march=native -mtune=native")
+set(CMAKE_EXE_LINKER_FLAGS "-s")
