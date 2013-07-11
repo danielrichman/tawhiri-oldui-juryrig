@@ -74,10 +74,16 @@ function plotClick() {
     // Make sure the data is valid before we try and do anything with it
     if ( isNaN(click_lat) || isNaN(click_lon) ) return;
     var click_pt = new google.maps.LatLng(click_lat, click_lon);
+
+    var launch_icon = new google.maps.MarkerImage(launch_img,
+        new google.maps.Size(10, 10),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(5, 5)
+    );
     clickMarker = new google.maps.Marker({
         position: click_pt,
         map: map,
-        icon: 'images/target-1-sm.png',
+        icon: launch_icon,
         title: 'Currently selected launch location (' + click_lat + ', ' 
             + click_lon+')'
     });

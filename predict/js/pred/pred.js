@@ -396,15 +396,15 @@ function parseCSV(lines) {
     
     // Make some nice icons
     var launch_icon = new google.maps.MarkerImage(launch_img,
-        new google.maps.Size(16,16),
+        new google.maps.Size(10,10),
         new google.maps.Point(0, 0),
-        new google.maps.Point(8, 8)
+        new google.maps.Point(5, 5)
     );
     
     var land_icon = new google.maps.MarkerImage(land_img,
-        new google.maps.Size(16,16),
+        new google.maps.Size(10,10),
         new google.maps.Point(0, 0),
-        new google.maps.Point(8, 8)
+        new google.maps.Point(5, 5)
     );
 
     var burst_icon = new google.maps.MarkerImage(burst_img,
