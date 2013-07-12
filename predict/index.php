@@ -1,7 +1,7 @@
 <?php
 
 /*
- * CUSF Landing Prediction Version 2
+ * CUSF Landing Prediction Version 2.5
  * http://www.cuspaceflight.co.uk
  *
  * Jon Sowman 2010
@@ -23,7 +23,7 @@ $time = time() + 3600;
 ?>
 <html>
 <head>
-<title>CUSF Landing Predictor 2.0</title>
+<title>CUSF Landing Predictor 2.5</title>
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 <script type="text/javascript" src="http://www.google.com/jsapi?key=<?php echo GMAPS_API_KEY; ?>">
 </script>
@@ -142,10 +142,13 @@ google.load("jqueryui", "1.8.1");
 <div id="about_window">
     <h3>Cambridge University Spaceflight Landing Predictor (<a href="http://github.com/jonsowman/cusf-standalone-predictor" target="_blank">github</a>)</h3>
     <p>A tool to predict the flight path and landing location of latex sounding balloons.</p>
-    <p>Written by <a href="http://github.com/jonsowman" target="_blank">Jon Sowman</a> and <a href="http://github.com/adamgreig" target="_blank">Adam Greig</a> for <a href="http://www.cuspaceflight.co.uk" target="_blank">CUSF</a>.
+    <p>Written by <a href="http://github.com/jonsowman" target="_blank">Jon Sowman</a>, <a href="http://github.com/adamgreig" target="_blank">Adam Greig</a> and <a href="http://github.com/danielrichman">Daniel Richman</a> for <a href="http://www.cuspaceflight.co.uk" target="_blank">CUSF</a>.
     Credit also to <a href="http://github.com/rjw57" target="_blank">Rich Wareham</a> for work on the predictor. Some parts of code taken from old landing prediction software, credit to Rob Anderson, Fergus Noble and Ed Moore.</p>
-    <p>Minor credit to Robert Harrison for integrating the NOTAM and airspace KML from <a href="http://www.notaminfo.com/" >www.notaminfo.com</a> with kind permission from author David Massie.</p>
+    <p>This predictor uses data from the NOAA GFS models.</p>
     <p>No guarantee is given for the accuracy, precision or reliability of the data produced by this software, and you use it entirely at your own risk. For more information, see #highaltitude on irc.freenode.net.</p>
+    <p>
+        Copyright 2013 Cambridge University Space Flight
+    </p>
     <h3>Burst Calculator</h3>
         <p><a href="http://cusf.co.uk/calc">Burst Calculator Web Page</a></p>
     <h4>Usage</h4>

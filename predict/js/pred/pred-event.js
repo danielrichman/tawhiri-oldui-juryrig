@@ -163,6 +163,7 @@ function EH_ScenarioInfo() {
         $("#about_window").dialog({
             modal:true,
             width:600,
+            height: $(document).height() - 200,
             buttons: {
                 Close: function() {
                         $(this).dialog('close');
