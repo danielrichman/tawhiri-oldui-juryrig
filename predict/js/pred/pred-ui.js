@@ -108,22 +108,24 @@ function scrollToBottom(div_id) {
 // Takes the window name, the linker ID, the event handlers for
 // 'onhide' and 'onshow', and a boolean 'force' parameter
 function toggleWindow(window_name, linker, onhide, onshow, force) {
+    $("#"+window_name+"").stop(true, true)
+
     if ( force == null ) {
         if( $("#"+window_name).css('display') != "none" ){
-            $("#"+window_name+"").stop(true, true).hide("slide", { direction: "down" }, 500);
+            $("#"+window_name+"").hide("slide", { direction: "down" }, 500);
             $("#"+linker).html(onhide);
         } else {
-            $("#"+window_name).stop(true, true).show("slide", { direction: "down" }, 500);
+            $("#"+window_name).show("slide", { direction: "down" }, 500);
             $("#"+linker).html(onshow);
         }
     } else if ( force == "hide" ) {
         if( $("#"+window_name).css('display') != "none" ){
-            $("#"+window_name+"").stop(true, true).hide("slide", { direction: "down" }, 500);
+            $("#"+window_name+"").hide("slide", { direction: "down" }, 500);
             $("#"+linker).html(onhide);
         }
     } else if ( force == "show") {
         if( $("#"+window_name).css('display') == "none" ){
-            $("#"+window_name).stop(true, true).show("slide", { direction: "down" }, 500);
+            $("#"+window_name).show("slide", { direction: "down" }, 500);
             $("#"+linker).html(onshow);
         }
     } else {
