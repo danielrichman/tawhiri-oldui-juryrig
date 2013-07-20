@@ -58,7 +58,7 @@ function show_prediction(uuid, launch_time, landing_time) {
                 });
                 path_polyline.setMap(g_map_object);
 
-                var pop_icon = new google.maps.MarkerImage('images/pop-marker.png',
+                var pop_icon = new google.maps.MarkerImage('../lib/images/pop-marker.png',
                         new google.maps.Size(16, 16),
                         new google.maps.Point(0, 0),
                         new google.maps.Point(8, 8));

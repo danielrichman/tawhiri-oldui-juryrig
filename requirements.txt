@@ -6,4 +6,4 @@ statsd-client==1.0.2
 gevent==0.13.8
 pygrib==1.9.6
 pyproj==1.9.3
-
+pyinotify==0.9.4

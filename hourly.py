@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import logging.handlers
 import os
 import os.path
 import time
@@ -11,18 +12,7 @@ import json
 import calendar
 import shutil
 import traceback
-
-def latest_dataset(directory):
-    choices = os.listdir(directory)
-    for choice in sorted(choices, reverse=True):  # reverse alphabetical will give newest first
-        try:
-            when = time.strptime(choice, "%Y%m%d%H")
-        except ValueError:
-            pass
-        else:
-            return os.path.join(directory, choice), calendar.timegm(when)
-    else:
-        raise ValueError("No datasets!")
+import pyinotify
 
 def last_line_of(filename):
     file = open(filename, 'r')
@@ -131,32 +121,10 @@ def run_prediction(prediction_time, predictions_dir, scenario_template,
 
     return (str(pred_uuid), manifest_entry)
 
-def main(root):
-    datasets = os.path.join(root, "tawhiri", "datasets")
-    scenarios = os.path.join(root, "hourly", "scenarios")
-
-    dataset_filename, dataset_time = latest_dataset(datasets)
-    logging.info("using dataset %s", dataset_filename)
-
-    for filename in os.listdir(scenarios):
-        if not filename.endswith(".json"):
-            continue
-        name = filename[:-5]
-        if name in ('', 'scenarios', 'lib') or '.' in name:
-            continue
-        logging.info("Running scenario %s", name)
-        with open(os.path.join(scenarios, filename)) as f:
-            scenario_template = json.load(f)
-        scenario_data_directory = os.path.join(root, "hourly", name)
-        run_scenario(scenario_template, scenario_data_directory,
-                     dataset_filename, dataset_time, root)
-
 def run_scenario(scenario_template, pred_root, dataset_filename, dataset_time, root):
-    if os.path.isdir(pred_root):
-        shutil.rmtree(pred_root)
-
     os.mkdir(pred_root)
-    os.symlink("../lib/index.html", os.path.join(pred_root, "index.html"))
+    index = os.path.join(pred_root, "index.html")
+    os.symlink("../lib/predicting.html", index)
     with open(os.path.join(pred_root, ".gitignore"), "w") as f:
         f.write("*")
 
@@ -172,7 +140,7 @@ def run_scenario(scenario_template, pred_root, dataset_filename, dataset_time, r
 
     for i in range(24 * 7):
         predict_time = dataset_datetime + datetime.timedelta(hours=i)
-        logging.info('Running prediction %s (%s)', i, predict_time)
+        logging.debug('Running prediction %s (%s)', i, predict_time)
 
         try:
             (uuid, entry) = run_prediction(predict_time, pred_root, scenario_template,
@@ -187,9 +155,234 @@ def run_scenario(scenario_template, pred_root, dataset_filename, dataset_time, r
     with open(manifest_filename, 'w') as f:
         json.dump(manifest, f)
 
+    os.unlink(index)
+    os.symlink("../lib/index.html", index)
+
+class EventHandler(pyinotify.ProcessEvent):
+    @classmethod
+    def run(cls, root):
+        wm = pyinotify.WatchManager()
+        handler = cls(root)
+        handler.add_watches(wm)
+        pyinotify.Notifier(wm, handler).loop()
+
+    def __init__(self, root):
+        pyinotify.ProcessEvent.__init__(self)
+
+        self.root = os.path.realpath(root)
+        self.datasets = os.path.join(root, "tawhiri", "datasets")
+        self.scenarios = os.path.join(root, "hourly", "scenarios")
+
+        if not os.path.exists(self.scenarios):
+            raise ValueError("scenarios directory does not exist")
+        if not os.path.exists(self.datasets):
+            raise ValueError("datasets directory does not exist")
+
+        choices = os.listdir(self.datasets)
+        for choice in sorted(choices, reverse=True):  # reverse alphabetical will give newest first
+            try:
+                self.dataset_parse_time(choice)
+            except ValueError:
+                pass
+            else:
+                self.latest_dataset = os.path.join(self.datasets, choice)
+                logging.debug("initial dataset %s; running all", choice)
+                self.rerun_all()
+                break
+        else:
+            logging.debug("no initial dataset")
+            self.latest_dataset = None
+
+    def add_watches(self, wm):
+        mask = pyinotify.IN_CLOSE_WRITE | pyinotify.IN_MOVED_TO | \
+               pyinotify.IN_DELETE | pyinotify.IN_MOVED_FROM
+        wm.add_watch(self.scenarios, mask)
+        wm.add_watch(self.datasets, mask)
+
+    def dataset_parse_time(self, filename):
+        if len(filename) != 10:
+            raise ValueError
+        return calendar.timegm(time.strptime(filename, "%Y%m%d%H"))
+
+    def latest_dataset_time(self):
+        if self.latest_dataset:
+            return self.dataset_parse_time(os.path.basename(self.latest_dataset))
+        else:
+            return None
+
+    def scenario_name(self, filename):
+        if not filename.endswith(".json"):
+            raise ValueError("filename does not end in .json")
+
+        name = filename[:-5]
+        if name in ('', 'scenarios', 'lib') or '.' in name:
+            raise ValueError("illegal scenario name")
+
+        scenario_data_directory = os.path.join(self.root, "hourly", name)
+        return name
+
+    def rerun_all(self):
+        assert self.latest_dataset
+        for filename in os.listdir(self.scenarios):
+            if filename == ".gitignore":
+                continue
+            try:
+                name = self.scenario_name(filename)
+            except ValueError as e:
+                logging.warning("bad scenario filename (when running all) - %s: %s", str(e), filename)
+            else:
+                logging.info("running %s", name)
+                self.run_scenario(name)
+
+    def run_scenario(self, name):
+        if not self.latest_dataset:
+            logging.warning("not running scenario %s - no dataset", name)
+            return
+
+        scenario_file = os.path.join(self.scenarios, name + ".json")
+        scenario_data_directory = os.path.join(self.root, "hourly", name)
+
+        self.clean_scenario(name)
+
+        try:
+            with open(scenario_file) as f:
+                scenario_template = json.load(f)
+        except ValueError:
+            logging.error("bad scenario JSON: %s", name)
+            return
+
+        args = (scenario_template, scenario_data_directory,
+                self.latest_dataset, self.latest_dataset_time(),
+                self.root)
+
+        try:
+            logging.debug("run_scenario(%r, %r, %r, %r, %r)", *args)
+            run_scenario(*args)
+        except:
+            logging.exception("scenario run failed: %s", name)
+            self.clean_scenario(name)
+        else:
+            logging.info("scenario run complete: %s", name)
+
+    def clean_scenario(self, name):
+        scenario_data_directory = os.path.join(self.root, "hourly", name)
+        logging.debug("cleaning scenario %s", name)
+        if os.path.exists(scenario_data_directory):
+            shutil.rmtree(scenario_data_directory)
+
+    def process_scenario_changed(self, event):
+        directory, filename = os.path.split(event.pathname)
+        assert directory == self.scenarios
+        try:
+            name = self.scenario_name(filename)
+        except ValueError as e:
+            logging.debug("%s: %s", str(e), filename)
+        else:
+            logging.info("Scenario %s modified: re-running", name)
+            self.run_scenario(name)
+
+    def process_scenario_deleted(self, event):
+        directory, filename = os.path.split(event.pathname)
+        assert directory == self.scenarios
+        try:
+            name = self.scenario_name(filename)
+        except ValueError as e:
+            logging.debug("%s: %s", str(e), filename)
+        else:
+            logging.info("Scenario %s removed: cleaning", name)
+            self.clean_scenario(name)
+
+    def process_dataset_added(self, event):
+        directory, filename = os.path.split(event.pathname)
+        assert directory == self.datasets
+        try:
+            new_time = self.dataset_parse_time(filename)
+        except ValueError:
+            logging.debug("file added was not a dataset: %s", filename)
+        else:
+            if new_time >= self.latest_dataset_time():
+                logging.info("new dataset added: %s; re-running all", filename)
+                self.latest_dataset = event.pathname
+                self.rerun_all()
+            else:
+                logging.warning("dataset added was not newer")
+
+    def process_dataset_deleted(self, event):
+        directory, filename = os.path.split(event.pathname)
+        assert directory == self.datasets
+        if event.pathname == self.latest_dataset:
+            logging.warning("latest dataset was deleted")
+            self.latest_dataset = None
+        else:
+            try:
+                self.dataset_parse_time(filename)
+            except ValueError:
+                logging.debug("unrelated dataset file deleted: %s", filename)
+            else:
+                logging.debug("older dataset file deleted: %s", filename)
+
+    def process_IN_CLOSE_WRITE(self, event):
+        logging.debug("CLOSE WRITE: %s", event.pathname)
+        if event.pathname.startswith(self.scenarios):
+            self.process_scenario_changed(event)
+        else:
+            self.process_dataset_added(event)
+
+    def process_IN_MOVED_TO(self, event):
+        logging.debug("MOVED TO: %s", event.pathname)
+        if event.pathname.startswith(self.scenarios):
+            self.process_scenario_changed(event)
+        else:
+            self.process_dataset_added(event)
+
+    def process_IN_DELETE(self, event):
+        logging.debug("DELETE: %s", event.pathname)
+        if event.pathname.startswith(self.scenarios):
+            self.process_scenario_deleted(event)
+        else:
+            self.process_dataset_deleted(event)
+
+    def process_IN_MOVED_FROM(self, event):
+        logging.debug("MOVED_FROM: %s", event.pathname)
+        if event.pathname.startswith(self.scenarios):
+            self.process_scenario_deleted(event)
+        else:
+            self.process_dataset_deleted(event)
+
+_format_email = \
+"""%(levelname)s from logger %(name)s (thread %(threadName)s)
+
+Time:       %(asctime)s
+Location:   %(pathname)s:%(lineno)d
+Module:     %(module)s
+Function:   %(funcName)s
+
+%(message)s"""
+
+_format_string = \
+"[%(asctime)s] %(levelname)s %(name)s %(threadName)s: %(message)s"
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    handler = logging.handlers.SMTPHandler(
+            "localhost", "hourly@localhost", "daniel@localhost",
+            "hourly predictor daemon")
+    handler.setLevel(logging.ERROR)
+    handler.setFormatter(logging.Formatter(_format_email))
+    logging.getLogger().addHandler(handler)
+
+    handler = logging.StreamHandler() # stderr
+    handler.setFormatter(logging.Formatter(_format_string))
+    handler.setLevel(logging.INFO)
+    logging.getLogger().addHandler(handler)
+
     root = os.path.dirname(os.path.abspath(__file__))
-    main(root)
+
+    try:
+        EventHandler.run(root)
+    except:
+        logger.exception("unhandled exception")
+        raise
 
 # vim:sw=4:ts=4:et:autoindent
