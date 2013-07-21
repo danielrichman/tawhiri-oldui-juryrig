@@ -1,0 +1,6 @@
+These directories need to be writable by www-data
+
+predict/preds
+hourly/scenarios
+hourly/web
+tawhiri/datasets

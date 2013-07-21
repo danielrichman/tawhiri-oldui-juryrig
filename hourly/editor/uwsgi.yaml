@@ -1,0 +1,5 @@
+uwsgi:
+    socket: /run/uwsgi/hourly-editor.sock
+    virtualenv: /var/www/predict/venv
+    chdir: /var/www/predict/hourly/editor
+    wsgi-file: app.wsgi

@@ -32,8 +32,10 @@ def run_prediction(prediction_time, predictions_dir, scenario_template,
     pred_root = os.path.join(predictions_dir, str(pred_uuid))
     os.mkdir(pred_root)
 
-    scenario = scenario_template.copy()
-    scenario['launch-time'] = {
+    scenario = {
+        "launch-site": scenario_template["launch-site"],
+        "altitude-model": scenario_template["altitude-model"],
+        "launch-time": {
             'year': prediction_time.year,
             'month': prediction_time.month,
             'day': prediction_time.day,
@@ -41,6 +43,7 @@ def run_prediction(prediction_time, predictions_dir, scenario_template,
             'minute': prediction_time.minute,
             'second': prediction_time.second,
         }
+    }
 
     logging.debug('Using scenario:')
     logging.debug(scenario)
@@ -215,10 +218,9 @@ class EventHandler(pyinotify.ProcessEvent):
             raise ValueError("filename does not end in .json")
 
         name = filename[:-5]
-        if name in ('', 'scenarios', 'lib') or '.' in name:
+        if name in ('', 'scenarios', 'lib', 'edit', 'static') or '.' in name:
             raise ValueError("illegal scenario name")
 
-        scenario_data_directory = os.path.join(self.root, "hourly", name)
         return name
 
     def rerun_all(self):
@@ -240,7 +242,7 @@ class EventHandler(pyinotify.ProcessEvent):
             return
 
         scenario_file = os.path.join(self.scenarios, name + ".json")
-        scenario_data_directory = os.path.join(self.root, "hourly", name)
+        scenario_data_directory = os.path.join(self.root, "hourly", "web", name)
 
         self.clean_scenario(name)
 
@@ -250,6 +252,8 @@ class EventHandler(pyinotify.ProcessEvent):
         except ValueError:
             logging.error("bad scenario JSON: %s", name)
             return
+
+        del scenario_template["password"]
 
         args = (scenario_template, scenario_data_directory,
                 self.latest_dataset, self.latest_dataset_time(),
@@ -265,7 +269,7 @@ class EventHandler(pyinotify.ProcessEvent):
             logging.info("scenario run complete: %s", name)
 
     def clean_scenario(self, name):
-        scenario_data_directory = os.path.join(self.root, "hourly", name)
+        scenario_data_directory = os.path.join(self.root, "hourly", "web", name)
         logging.debug("cleaning scenario %s", name)
         if os.path.exists(scenario_data_directory):
             shutil.rmtree(scenario_data_directory)
@@ -377,12 +381,12 @@ if __name__ == '__main__':
     handler.setLevel(logging.INFO)
     logging.getLogger().addHandler(handler)
 
-    root = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     try:
         EventHandler.run(root)
     except:
-        logger.exception("unhandled exception")
+        logging.exception("unhandled exception")
         raise
 
 # vim:sw=4:ts=4:et:autoindent

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <h1>Password required</h1>
+    {% if error %}
+        <div class="alert alert-error">Bad password</div>
+    {% endif %}
+    <form method="POST" action="{{ url_for('edit', scenario=scenario) }}" class="form-inline">
+        <label for="password">
+        <input type="password" id="password" name="password" placeholder="password">
+        <button class="btn btn-primary" type="submit">Go</button>
+    </form>
+{% endblock %}
