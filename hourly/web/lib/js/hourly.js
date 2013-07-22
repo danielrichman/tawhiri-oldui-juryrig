@@ -10,6 +10,20 @@ function init_map() {
         g_map_object = map;
 }
 
+function utc_patch() {
+        // Modified version of mootools-more Date.get
+        Date.prototype.get = function (what) {
+                what = what.toLowerCase();
+                if (Date.Methods[what])         // convert shorthands hr -> hour
+                        what = Date.Methods[what].toLowerCase();
+                if (Date.Methods["utc" + what])
+                        return this["get" + Date.Methods["utc" + what]]();
+                if (Date.Methods[what])
+                        return this["get" + Date.Methods[what]]();
+                return null;
+        }
+}
+
 function prediction_entry_convert_date(when) {
         var time = new Date();
         time.setUTCFullYear(when.year);
@@ -248,6 +262,7 @@ distHaversine = function(p1, p2, precision) {
 rad = function(x) {return x*Math.PI/180;}
 
 $(document).ready(function() {
+        utc_patch();
         init_map();
         populate_map();
 });
