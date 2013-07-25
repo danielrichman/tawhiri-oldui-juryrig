@@ -56,11 +56,9 @@ def edit(scenario):
     if not (1000 <= am["burst-altitude"] <= 45000):
         errors["burst_altitude"] = "Need 1000 <= burst altitude <= 45000"
 
-    kwargs = {}
+    kwargs = data.copy()
     kwargs["scenario"] = scenario
-    kwargs.update(data["owner"])
-    kwargs["password"] = data["password"]
-    kwargs.update(data["launch-site"])
+    kwargs["site"] = kwargs["launch-site"]
     kwargs["ascent_rate"] = am["ascent-rate"]
     kwargs["descent_rate"] = am["descent-rate"]
     kwargs["burst_altitude"] = am["burst-altitude"]

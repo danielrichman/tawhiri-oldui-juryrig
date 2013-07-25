@@ -15,37 +15,44 @@
         <legend>Launch site</legend>
 
         <div class="control-group">
+            <label class="control-label" for="name">Name</label>
+            <div class="controls">
+                <input type="text" name="name" readonly value="{{ name }}">
+            </div>
+        </div>
+
+        <div class="control-group">
             <label class="control-label" for="owner">Owner</label>
             <div class="controls">
-                <input type="text" name="owner" readonly value="{{ name }}">
+                <input type="text" name="owner" readonly value="{{ owner.name }}">
             </div>
         </div>
 
         <div class="control-group">
             <label class="control-label" for="email">Email</label>
             <div class="controls">
-                <input type="text" name="email" readonly value="{{ email }}">
+                <input type="text" name="email" readonly value="{{ owner.email }}">
             </div>
         </div>
 
         <div class="control-group">
             <label class="control-label" for="latitude">Latitude</label>
             <div class="controls">
-                <input type="text" name="latitude" readonly value="{{ latitude }}">
+                <input type="text" name="latitude" readonly value="{{ site.latitude }}">
             </div>
         </div>
 
         <div class="control-group">
             <label class="control-label" for="longitude">Longitude</label>
             <div class="controls">
-                <input type="text" name="longitude" readonly value="{{ longitude }}">
+                <input type="text" name="longitude" readonly value="{{ site.longitude }}">
             </div>
         </div>
 
         <div class="control-group">
             <label class="control-label" for="altitude">Altitude</label>
             <div class="controls">
-                <input type="text" name="altitude" readonly value="{{ altitude }}">
+                <input type="text" name="altitude" readonly value="{{ site.altitude }}">
             </div>
         </div>
 
