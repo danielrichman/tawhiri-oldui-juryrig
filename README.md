@@ -1,46 +1,69 @@
-# CUSF Standalone Predictor - Version 2
+# CUSF Predictor - "Version 2.5; tawhiri juryrig"
 
-Cambridge University Spaceflight landing predictor - a web-based tool for predicting the flight path and landing location of latex meteorological sounding balloons.  
+Cambridge University Spaceflight landing predictor - a web-based tool for predicting the flight path and landing location of latex meteorological sounding balloons.
 
-## Install
+This is a "temporary" repository, a stepping stone on the way to completion of larger CUSpaceflight work to rewriting the predictor.
+We're replacing bits one at a time, and since the tawhiri wind downloader is completed, this project glues the old web UI to it.
 
-The source for the predictor itself is in `pred_src/` and instructions for building it can be found there.  
+## Dependencies and Install
 
-The following items need to be executable (`chmod +x ./predict.py`) by the user under which the predictor runs:  
+Unless you fancy changing the paths in various files, you probably want to clone this repository to `/var/www/predict`. If not, see
 
-*   `predict.py`
-*   `pred_src/pred` (once compiled)
-*   `cron/clear-pydap-cache-cronjob.sh`
-*   `cron/purge-predictions-cronjob.sh`
+  - `predict/includes/config.inc.php` (also contains other useful configuration options)
+  - deploy/*
 
-The `predict/preds/` and `gfs/` directories need to have rwx access by the PHP interpreter and the `predict.py` python script. You will need to install the python dependencies listed in requirements.txt. In the case of PyDAP, the exact version is important; the easiest way is:
+You will need to get a copy of the tawhiri downloader
 
+    $ git submodule update --init
+
+A copy of supervisord (typically system wide)
+
+    $ sudo apt-get install supervisor
+
+And a virtualenv with some python dependencies
+
+    $ virtualenv  venv
     $ pip install -r requirements.txt
 
-Other than that, just clone this repo to a non web-accessible folder and create symlinks to the `predict/` directory in the repo.  
+The source for the predictor itself is in `pred_src/`.
 
-There are useful configuration options in `predict/includes/config.inc.php`.  
+    $ cd pred_src
+    $ cmake .
+    $ make
 
-## Information
+Setup the crontab to run prune-predictions-cronjob.sh daily (deletes predictions in predict/preds not accessed or modified in the last 7 days)
 
-The two shell scripts in the `cron/` directory should both be run daily. `clear-pydap-cache-cronjob.sh` clears the cache used by pydap so that old data does not build up. `purge-predictions-cronjob.sh` deletes scenarios and predictions not accessed or modified within the last 7 days. Re-running a prediction for a scenario will therefore reset its time to live to 7 more days.   
+    $ sudo crontab -u www-data deploy/crontab-example # assuming installed to /var/www/predict, else you will need to edit it
 
-The directory names are UUIDs comprised of an SHA1 hash of the launch parameters, and re-running predictions will overwrite data in the existing directory, rather than create a new one.  
+See `deploy/permissions`, which contains a list of directories that will need to be writable by the user that PHP and the downloader will run as (`www-data`).
 
-We use GFS data provided by the NOAA, accessed via NDAP and their [NOMADS](http://nomads.ncep.noaa.gov) distribution system. The [1.0x1.0 degree data](http://nomads.ncep.noaa.gov/txt_descriptions/GFS_high_resolution_doc.shtml) (26 vertical pressure levels) is used for standard predictions, and the [0.5x0.5 degree data](http://nomads.ncep.noaa.gov/txt_descriptions/GFS_half_degree_doc.shtml) (47 vertical pressure levels) is used for the high definition (HD) predictions.  
+    $ chgrp www-data predict/preds hourly/scenarios hourly/web tawhiri/datasets
+    $ chmod g+rwxs predict/preds hourly/scenarios hourly/web tawhiri/datasets
+
+Finally, start the daemons
+
+    $ cp deploy/*.supervisord.conf
+    $ sudo supervisorctl update
+
+And setup your web server. See deploy/nginx-predict.conf; you will need to:
+
+  - serve the predict folder and the hourly folder (somewhere)
+  - enable PHP in predict, but not in predict/preds or hourly/
+  - serve the hourly-editor wsgi app, and its static directory
 
 ## License
 
-This work is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version. This work is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose.  
+This work is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version. This work is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose.
 
 ## Credits & Acknowledgments
 
-Credit as detailed in individual files, but notably:  
+Credit as detailed in individual files, but notably:
 
-* Rich Wareham - The new predictor and the hourly predictor system  
-* Fergus Noble, Ed Moore and many others  
+* Rich Wareham - The new predictor and the hourly predictor system
+* Fergus Noble, Ed Moore and many others
 
-Adam Greig - [http://www.randomskk.net](http://www.randomskk.net) - [random@randomskk.net](mailto:random@randomskk.net)  
-Jon Sowman - [http://www.hexoc.com](http://www.hexoc.com) - [jon@hexoc.com](mailto:jon@hexoc.com)  
+Adam Greig - [http://www.randomskk.net](http://www.randomskk.net) - [random@randomskk.net](mailto:random@randomskk.net)
+Jon Sowman - [http://www.hexoc.com](http://www.hexoc.com) - [jon@hexoc.com](mailto:jon@hexoc.com)
+Daniel Richman - [http://www.danielrichman.co.uk](http://www.danielrichman.co.uk) - [main@danielrichman.co.uk](mailto:main@danielrichman.co.uk)
 
-Copyright Cambridge University Spaceflight 2009-2011 - All Rights Reserved
+Copyright Cambridge University Spaceflight 2009-2013 - All Rights Reserved
