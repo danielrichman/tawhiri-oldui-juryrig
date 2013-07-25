@@ -10,7 +10,7 @@ We're replacing bits one at a time, and since the tawhiri wind downloader is com
 Unless you fancy changing the paths in various files, you probably want to clone this repository to `/var/www/predict`. If not, see
 
   - `predict/includes/config.inc.php` (also contains other useful configuration options)
-  - deploy/*
+  - `deploy/*`
 
 You will need to get a copy of the tawhiri downloader
 
@@ -42,7 +42,7 @@ See `deploy/permissions`, which contains a list of directories that will need to
 
 Finally, start the daemons
 
-    $ cp deploy/*.supervisord.conf
+    $ cp deploy/*.supervisord.conf /etc/supervisor/conf.d
     $ sudo supervisorctl update
 
 And setup your web server. See deploy/nginx-predict.conf; you will need to:
@@ -61,9 +61,8 @@ Credit as detailed in individual files, but notably:
 
 * Rich Wareham - The new predictor and the hourly predictor system
 * Fergus Noble, Ed Moore and many others
-
-Adam Greig - [http://www.randomskk.net](http://www.randomskk.net) - [random@randomskk.net](mailto:random@randomskk.net)
-Jon Sowman - [http://www.hexoc.com](http://www.hexoc.com) - [jon@hexoc.com](mailto:jon@hexoc.com)
-Daniel Richman - [http://www.danielrichman.co.uk](http://www.danielrichman.co.uk) - [main@danielrichman.co.uk](mailto:main@danielrichman.co.uk)
+* Adam Greig - [http://www.randomskk.net](http://www.randomskk.net) - [random@randomskk.net](mailto:random@randomskk.net)
+* Jon Sowman - [http://www.hexoc.com](http://www.hexoc.com) - [jon@hexoc.com](mailto:jon@hexoc.com)
+* Daniel Richman - [http://www.danielrichman.co.uk](http://www.danielrichman.co.uk) - [main@danielrichman.co.uk](mailto:main@danielrichman.co.uk)
 
 Copyright Cambridge University Spaceflight 2009-2013 - All Rights Reserved
