@@ -145,15 +145,12 @@ def run_scenario(scenario_template, pred_root, dataset_filename, dataset_time, r
         predict_time = dataset_datetime + datetime.timedelta(hours=i)
         logging.debug('Running prediction %s (%s)', i, predict_time)
 
-        try:
-            (uuid, entry) = run_prediction(predict_time, pred_root, scenario_template,
-                                           dataset_filename, dataset_time, root)
-        except:
-            logging.exception("prediction failed")
-        else:
-            # Record in manifest
-            manifest['predictions'][uuid] = entry
-            logging.debug('ok')
+        (uuid, entry) = run_prediction(predict_time, pred_root, scenario_template,
+                                       dataset_filename, dataset_time, root)
+
+        # Record in manifest
+        manifest['predictions'][uuid] = entry
+        logging.debug('ok')
 
     with open(manifest_filename, 'w') as f:
         json.dump(manifest, f)
