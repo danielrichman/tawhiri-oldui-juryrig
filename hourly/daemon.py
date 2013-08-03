@@ -21,6 +21,9 @@ def last_line_of(filename):
         last_line = line
     return last_line.strip()
 
+class DatasetRaceError(Exception):
+    pass
+
 def run_prediction(prediction_time, predictions_dir, scenario_template,
                    dataset_filename, dataset_time, root):
     pred_binary = os.path.join(root, "pred_src", "pred")
@@ -83,6 +86,9 @@ def run_prediction(prediction_time, predictions_dir, scenario_template,
         stdout=output_file, stderr=logging_file)
     pred_process.wait()
     if pred_process.returncode:
+        # catch the race between someone re-running a scenario and the download daemon swapping in a new dataset
+        if not os.path.exists(dataset_filename):
+            raise DatasetRaceError
         raise RuntimeError('Prediction process %s returned error code: %s.' % (pred_uuid, pred_process.returncode))
     output_file.close()
     logging_file.close()
@@ -259,7 +265,10 @@ class EventHandler(pyinotify.ProcessEvent):
         try:
             logging.debug("run_scenario(%r, %r, %r, %r, %r)", *args)
             run_scenario(*args)
-        except:
+        except DatasetRaceError:
+            logging.warning("Dataset race error, cleaning up and expecting retry")
+            self.clean_scenario(name)
+        except Exception:
             logging.exception("scenario run failed: %s", name)
             self.clean_scenario(name)
         else:
@@ -382,7 +391,7 @@ if __name__ == '__main__':
 
     try:
         EventHandler.run(root)
-    except:
+    except Exception:
         logging.exception("unhandled exception")
         raise
 
