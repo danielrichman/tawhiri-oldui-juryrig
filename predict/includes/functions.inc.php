@@ -100,6 +100,13 @@ function verifyModel( $pred_model ) {
 
 // Run the prediction given a prediction model
 function runPred($pred_model) {
+
+    // Save the prediction
+    $launchtime = mktime($pred_model['hour'], $pred_model['minute'], $pred_model['second'], $pred_model['month'], $pred_model['day'], $pred_model['year'])
+    $db = pg_connect("dbname=predict_stats");
+    pg_query_params($db, "INSERT INTO predictions (latitude, longitude, altitude, launch, ascent_rate, burst_altitude, descent_rate) VALUES ($1, $2, $3, to_timestamp($4), $5, $6, $7)", array($pred_model['lat'], $pred_model['lon'], $pred_model['alt'], $launchtime, $pred_model['asc'], $pred_model['burst'], $pred_model['des']));
+    pg_close($db);
+
     // Check if this is a re-run
     if ( !file_exists(PREDS_PATH . $pred_model['uuid'] . "/" . SCENARIO_FILE) ) 
     {
