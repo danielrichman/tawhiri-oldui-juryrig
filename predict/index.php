@@ -40,7 +40,6 @@ google.load("jqueryui", "1.8.1");
 <script src="js/jquery/jquery.form.js" type="text/javascript"></script>
 <script src="js/jquery/jquery.jookie.js" type="text/javascript"></script>
 <script src="js/jquery/jquery.tipsy.js" type="text/javascript"></script>
-<script src="js/utils/date.jsport.js" type="text/javascript"></script>
 
 <script src="js/pred/pred-config.js" type="text/javascript"></script>
 <script src="js/pred/pred-ui.js" type="text/javascript"></script>

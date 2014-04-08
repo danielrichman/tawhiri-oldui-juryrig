@@ -169,7 +169,7 @@ function writePredictionInfo(current_uuid, run_time, dataset) {
             map.panTo(map_items['launch_marker'].position);
             //map.setZoom(7);
     });
-    $("#run_time").html(POSIXtoHM(run_time, "H:i d/m/Y"));
+    $("#run_time").html(POSIXtoHM(run_time, true));
     $("#dataset").html(dataset);
 }
 
@@ -469,22 +469,32 @@ function getAssocSize(arr) {
     return i;
 }
 
-function POSIXtoHM(timestamp, format) {
-    // Using JS port of PHP's date()
-    var ts = new Date();
-    ts.setTime(timestamp*1000);
+function POSIXtoHM(timestamp, include_day) {
+    var ts = new Date(timestamp*1000);
+    var s = "";
+    var temp;
 
-    // We always want to work in UTC, so adjust the Date
-    ts.setTime(ts.getTime() + (ts.getTimezoneOffset() * 60000));
-
-    // Account for DST
-    if ( ts.format("I") ==  1 ) {
-        ts.setTime((timestamp-3600)*1000);
+    function pad(s2, n) {
+        s2 = String(s2);
+        while (s2.length < n)
+            s2 = "0" + s2;
+        return s2;
     }
 
-    if ( format == null || format == "" ) format = "H:i";
-    var str = ts.format(format);
-    return str;
+    s += pad(ts.getUTCHours(), 2);
+    s += ":";
+    s += pad(ts.getUTCMinutes(), 2);
+
+    if (include_day) {
+        s += " ";
+        s += pad(ts.getUTCDate(), 2);
+        s += "/";
+        s += pad(ts.getUTCMonth() + 1, 2);
+        s += "/";
+        s += pad(ts.getUTCFullYear(), 2);
+    }
+
+    return s;
 }
 
 rad = function(x) {return x*Math.PI/180;}
