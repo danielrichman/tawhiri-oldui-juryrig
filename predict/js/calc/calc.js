@@ -360,11 +360,11 @@ function calc_update() {
 
     document.getElementById('ar').innerHTML = ascent_rate;
     document.getElementById('ba').innerHTML = burst_altitude;
-    document.getElementById('ttb').innerHTML = time_to_burst + " min";
-    document.getElementById('nl').innerHTML = neck_lift + " g";
-    document.getElementById('lv_m3').innerHTML = launch_volume + " m<sup>3</sup>";
-    document.getElementById('lv_l').innerHTML = launch_litres + " L";
-    document.getElementById('lv_cf').innerHTML = launch_cf + " ft<sup>3</sup>";
+    document.getElementById('ttb').innerHTML = time_to_burst;
+    document.getElementById('nl').innerHTML = neck_lift;
+    document.getElementById('lv_m3').innerHTML = launch_volume;
+    document.getElementById('lv_l').innerHTML = launch_litres;
+    document.getElementById('lv_cf').innerHTML = launch_cf;
 }
 
 function calc_init() {
