@@ -47,11 +47,11 @@ def edit(scenario):
         except ValueError:
             errors["burst_altitude"] = "Bad int"
 
-    if not (1 <= am["ascent-rate"] <= 10):
-        errors["ascent_rate"] = "Need 1 <= ascent rate <= 10"
+    if not (1 <= am["ascent-rate"] <= 20):
+        errors["ascent_rate"] = "Need 1 <= ascent rate <= 20"
 
-    if not (1 <= am["descent-rate"] <= 10):
-        errors["descent_rate"] = "Need 1 <= descent rate <= 10"
+    if not (1 <= am["descent-rate"] <= 20):
+        errors["descent_rate"] = "Need 1 <= descent rate <= 20"
 
     if not (1000 <= am["burst-altitude"] <= 45000):
         errors["burst_altitude"] = "Need 1000 <= burst altitude <= 45000"
