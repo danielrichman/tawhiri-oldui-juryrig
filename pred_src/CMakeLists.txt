@@ -2,14 +2,6 @@
 #
 # Original version: Rich Wareham <rjw57@cam.ac.uk>
 
-# Use PkgConfig to find the glib libraries
-find_package(PkgConfig)
-
-pkg_check_modules(GLIB REQUIRED glib-2.0)
-
-include_directories(${GLIB_INCLUDE_DIRS})
-link_directories(${GLIB_LIBRARY_DIRS})
-
 add_executable(pred
 	util/gopt.c
 	util/getdelim.c
@@ -33,7 +25,7 @@ add_executable(pred
 	ini/dictionary.c
 )
 
-target_link_libraries(pred ${GLIB_LIBRARIES} -lm)
+target_link_libraries(pred -lm)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -march=native -mtune=native")
