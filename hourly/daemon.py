@@ -176,7 +176,7 @@ class EventHandler(pyinotify.ProcessEvent):
         pyinotify.ProcessEvent.__init__(self)
 
         self.root = os.path.realpath(root)
-        self.datasets = os.path.join(root, "tawhiri", "datasets")
+        self.datasets = "/srv/tawhiri-datasets"
         self.scenarios = os.path.join(root, "hourly", "scenarios")
 
         if not os.path.exists(self.scenarios):

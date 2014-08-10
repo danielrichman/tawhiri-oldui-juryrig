@@ -18,7 +18,7 @@ define("PYTHON", ROOT . "venv/bin/python");
 define("PREDS_PATH", "preds/");
 
 // Path to the dataset directory from ROOT
-define("DATASET_DIR", ROOT . "tawhiri/datasets");
+define("DATASET_DIR", "/srv/tawhiri-datasets");
 
 // Filenames used by the predictor
 define("SCENARIO_FILE", "scenario.ini");
