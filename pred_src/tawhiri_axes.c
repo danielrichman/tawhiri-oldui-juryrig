@@ -2,7 +2,7 @@
 
 // output of bin/testing/juryrig_axes.py
 
-typedef double dataset_array_t[65][47][3][361][720];
+typedef float dataset_array_t[65][47][3][361][720];
 const int shape[] =
    { 65, 47, 3, 361, 720 };
 const int dimensions = 5;
