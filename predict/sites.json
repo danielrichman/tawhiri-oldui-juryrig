@@ -38,5 +38,11 @@
         "latitude"  :   52.1215,
         "longitude" :   0.8078,
         "altitude"  :   70
+    },
+    "Ross-on-Wye": {
+        "altitude"  :   150,
+        "latitude"  :   51.95023,
+        "longitude" :   -2.5445
     }
+
 }
