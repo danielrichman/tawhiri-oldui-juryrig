@@ -14,20 +14,15 @@
         "latitude"  :   -34.9499,
         "longitude" :   138.5194
     },
-    "Brightwalton": {
-        "altitude"  :   0,
-        "latitude"  :   51.51143,
-        "longitude" :   -1.38870
-    },
     "Boston Spa": { 
         "latitude"  :   53.8997,
         "longitude" :   -1.3629,
         "altitude"  :   0
     },
-    "Wistow": {
-        "altitude"  :   0,
-        "latitude"  :   -35.1217,
-        "longitude" :   138.8503
+    "Mt Barker": {
+        "altitude"  :   360,
+        "latitude"  :   -35.0765,
+        "longitude" :   138.8569
     },
     "Cookstown": {
         "altitude"  :   60,
