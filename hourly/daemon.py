@@ -314,7 +314,14 @@ class EventHandler(pyinotify.ProcessEvent):
         except ValueError:
             logging.debug("file added was not a dataset: %s", filename)
         else:
-            if new_time >= self.latest_dataset_time():
+            # This used to be new_time >= self.latest_dataset_time().
+            # However, this could produce duplicate new-dataset-added events,
+            # which are quite expensive for us. In particular, the dataset is
+            # un-mapped from the downloader process whenever the downloader
+            # process' garbage collector feels like it, and that produces a
+            # CLOSE_WRITE event. We really only care about the MOVED_TO event
+            # that reliably happens upon download completion.
+            if new_time > self.latest_dataset_time():
                 logging.info("new dataset added: %s; re-running all", filename)
                 self.latest_dataset = event.pathname
                 self.rerun_all()
