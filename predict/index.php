@@ -15,7 +15,7 @@
 require_once("includes/config.inc.php");
 require_once("includes/functions.inc.php");
 
-$stats = new StatsD();
+$stats = new StatsD('kraken.habhub.org');
 $stats->counting('habhub.predictor.php.hits');
 
 // Get the time for pre-populating the form

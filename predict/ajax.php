@@ -2,7 +2,7 @@
 require_once("includes/functions.inc.php");
 require_once("includes/config.inc.php");
 
-$stats = new StatsD();
+$stats = new StatsD('kraken.habhub.org');
 
 $action = $_GET['action'];
 
