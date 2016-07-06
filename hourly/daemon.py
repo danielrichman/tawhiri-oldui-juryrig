@@ -244,6 +244,10 @@ class EventHandler(pyinotify.ProcessEvent):
             logging.warning("not running scenario %s - no dataset", name)
             return
 
+        if not os.path.exists(self.latest_dataset):
+            logging.warning("Dataset race error pre-scenario %s, not running, expecting retry", name)
+            return
+
         scenario_file = os.path.join(self.scenarios, name + ".json")
         scenario_data_directory = os.path.join(self.root, "hourly", "web", name)
 
@@ -266,7 +270,7 @@ class EventHandler(pyinotify.ProcessEvent):
             logging.debug("run_scenario(%r, %r, %r, %r, %r)", *args)
             run_scenario(*args)
         except DatasetRaceError:
-            logging.warning("Dataset race error, cleaning up and expecting retry")
+            logging.warning("Dataset race error mid-scenario %s, cleaning up and expecting retry", name)
             self.clean_scenario(name)
         except Exception:
             logging.exception("scenario run failed: %s", name)
