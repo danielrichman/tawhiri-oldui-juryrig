@@ -1,4 +1,0 @@
-# give this file to         crontab -u www-data
-# to use in /etc/crontab, add the user column
-# m h dom mon dow command
-10 1 * * * /var/www/predict/cron/prune-predictions-cronjob.sh > /dev/null

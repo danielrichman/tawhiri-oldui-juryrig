@@ -91,33 +91,32 @@ function EH_NOTAMSettings() {
 
 function EH_LaunchCard() {
     // Attach form submit event handler to Run Prediction button
-    $("#modelForm").ajaxForm({
-        url: 'ajax.php?action=submitForm',
-        type: 'POST',
-        dataType: 'json',
-        success: function(data) {
-            if ( data.valid == "false" ) {
-                // If something went wrong, write the error messages to
-                // the debug window
-                appendDebug("The server rejected the submitted form data:");
-                appendDebug(data.error);
-                // And throw an error window to alert the user of what happened
-                resetGUI();
-                throwError("The server rejected the submitted form data: \n"
-                    + data.error);
-            } else if ( data.valid == "true" ) {
-                predSub();
-                appendDebug("The server accepted the form data");
-                // Update the global current_uuid variable
-                current_uuid = data.uuid;
-                appendDebug("The server gave us uuid:<br>" + current_uuid);
-                appendDebug("Starting to poll for progress JSON");
-                handlePred(current_uuid);
-            } else {
-                appendDebug("data.valid was not a recognised state: " 
-                        + data.valid);
-            }
+    $("#modelForm").submit(function () {
+        var launch_datetime = \
+            sprintf("%04i-%02i-%02iT%02i:%02i:%02iZ",
+                $("#year"), $("#month"), $("#day"),
+                $("#hour"), $("#minute"), $("#second"));
+
+        try {
+            new Date(launch_datetime);
+        } catch {
+            throwError("Invalid launch time");
+            return;
         }
+
+        var r = \ 
+            { launch_latitude  : +$("#lat").text()
+            , launch_longitude : +$("#lon").text()
+            , launch_altitude  : +$("#initial_alt").text()
+            , launch_datetime  : sprint
+            , launch_datetime_min  : +s[4]
+            , launch_datetime_sec  : +s[5]
+            , ascent_rate    : +s[6]
+            , burst_altitude : +s[7]
+            , descent_rate   : +s[8]
+            };  
+
+        pushToHistoryAndRequestPrediction(r);
     });
     // Activate the "Set with Map" link
     $("#setWithClick").click(function() {

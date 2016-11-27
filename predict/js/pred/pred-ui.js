@@ -36,7 +36,7 @@ function initUI() {
 
 // Throw an error window containing <data> and a 'close' link
 function throwError(data) {
-    $("#error_message").html(data);
+    $("#error_message").empty().append(data);
     $("#error_window").fadeIn();
 }
 
