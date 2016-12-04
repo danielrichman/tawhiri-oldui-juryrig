@@ -92,31 +92,29 @@ function EH_NOTAMSettings() {
 function EH_LaunchCard() {
     // Attach form submit event handler to Run Prediction button
     $("#modelForm").submit(function () {
-        var launch_datetime = \
+        var launch_datetime =
             sprintf("%04i-%02i-%02iT%02i:%02i:%02iZ",
-                $("#year"), $("#month"), $("#day"),
-                $("#hour"), $("#minute"), $("#second"));
+                $("#year").val(), $("#month").val(), $("#day").val(),
+                $("#hour").val(), $("#min").val(), 0);
 
-        try {
-            new Date(launch_datetime);
-        } catch {
+        if (!validateDate(launch_datetime)) {
             throwError("Invalid launch time");
-            return;
+            return false;
         }
 
-        var r = \ 
-            { launch_latitude  : +$("#lat").text()
-            , launch_longitude : +$("#lon").text()
-            , launch_altitude  : +$("#initial_alt").text()
-            , launch_datetime  : sprint
-            , launch_datetime_min  : +s[4]
-            , launch_datetime_sec  : +s[5]
-            , ascent_rate    : +s[6]
-            , burst_altitude : +s[7]
-            , descent_rate   : +s[8]
+        var r = 
+            { launch_latitude  : +$("#lat").val()
+            , launch_longitude : +$("#lon").val()
+            , launch_altitude  : +$("#initial_alt").val()
+            , launch_datetime  : launch_datetime
+            , ascent_rate      : +$("#ascent").val() 
+            , burst_altitude   : +$("#burst").val() 
+            , descent_rate     : +$("#descent").val() 
             };  
 
         pushToHistoryAndRequestPrediction(r);
+
+        return false;
     });
     // Activate the "Set with Map" link
     $("#setWithClick").click(function() {

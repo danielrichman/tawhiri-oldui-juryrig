@@ -42,15 +42,6 @@ function throwError(data) {
 
 // Reset the GUI to a onLoad state ready for a new prediction to be shown
 function resetGUI() {
-    if (showStatusEventHandle) {
-        clearTimeout(showStatusEventHandle);
-        showStatusEventHandle = null;
-    }
-    if (firstJSONProgressHandle) {
-        clearTimeout(firstJSONProgressHandle);
-        firstJSONProgressHandle = null;
-    }
-    
     $("#status_message").fadeOut(500);
     $("#error_window").fadeOut(500);
     $("#modelForm").find("input").attr("disabled", false);
@@ -67,6 +58,7 @@ function resetGUI() {
 }
 
 // Prevent flicker on fast responses by delaying hide for a small time
+var cursorPredHideHandle;
 function cursorPredHide() {
     if (cursorPredHideHandle)
         return;
@@ -74,7 +66,7 @@ function cursorPredHide() {
     cursorPredHideHandle = setTimeout(function () {
         cursorPredHideHandle = null;
         $("#cursor_pred").hide();
-    }, firstAjaxDelay + showStatusDelay);
+    }, 200);
 }
 
 function cursorPredShow() {

@@ -8,6 +8,25 @@
  *
  */
 
+// TODO: proper rfc3339
+function validateDate(s) {
+    if (s.length != 'YYYY-MM-DDTHH:MM:SSZ'.length)
+        return false;
+
+    var d;
+
+    try {
+        d = new Date(s);
+    } catch (exn) {
+        return false;
+    }   
+
+    if (isNaN(d.getUTCMinutes()))
+        return false;
+
+    return true;
+}
+
 // Tries to unpack parameters from the URL, if we can. Otherwise null
 function unpackURL() {
     if (!document.location.search)
@@ -19,16 +38,10 @@ function unpackURL() {
     if (s.length != 7)
         return null;
 
-    if (s[3].length != 'YYYY-MM-DDTHH:MM:SSZ'.length)
+    if (!validateDate(s[3]))
         return null;
 
-    try {
-        new Date(s[3]);
-    } catch {
-        return null;
-    }
-
-    var r = \
+    var r = 
         { launch_latitude  : +s[0]
         , launch_longitude : +s[1]
         , launch_altitude  : +s[2]
@@ -46,7 +59,7 @@ function unpackURL() {
 }
 
 function packURL(obj) {
-    var r = \
+    var r = 
         [ obj.launch_latitude 
         , obj.launch_longitude
         , obj.launch_altitude 
@@ -56,15 +69,40 @@ function packURL(obj) {
         , obj.descent_rate 
         ];
 
-    var s = r.join(",");
+    return r.join(",");
 }
 
 function pushToHistoryAndRequestPrediction(obj) {
-    window.history.pushState(null, null, packURL(obj));
+    window.history.pushState(null, null, "?" + packURL(obj));
     requestPrediction(obj);
 }
 
-function requestPrediction(obj) {
+function populateFormFromReq(obj) {
+    $("#lat").val(obj.launch_latitude);
+    $("#lon").val(obj.launch_longitude);
+    $("#initial_alt").val(obj.launch_altitude);
+    var date = new Date(obj.launch_datetime);
+    $("#year").val(date.getUTCFullYear());
+    $("#month").val(date.getUTCMonth());
+    $("#day").val(date.getUTCDate());
+    $("#hour").val(date.getUTCHours());
+    $("#minute").val(date.getUTCMinutes());
+    $("#ascent").val(obj.ascent_rate);
+    $("#descent").val(obj.descent_rate);
+    $("#burst").val(obj.burst_altitude);
+}
+
+function populateDefaultLaunchTime() {
+    // lat and lon are populated by default with the first location
+    var date = new Date(Date.now() + 3600*1000);
+    $("#year").val(date.getUTCFullYear());
+    $("#month").val(date.getUTCMonth() + 1);
+    $("#day").val(date.getUTCDate());
+    $("#hour").val(date.getUTCHours());
+    $("#min").val(date.getUTCMinutes());
+}
+
+function requestPrediction(req_obj) {
     appendDebug(null, 1); // clear debug window
     appendDebug("Sending data to server...");
     // Disable form
@@ -89,27 +127,25 @@ function requestPrediction(obj) {
 
     setTimeout(showPredictingWindow, 500);
 
-    $.getJSON("/api/predict", obj, function (result) {
-        still_predicting = false;
-
-        if (result.error) {
-            var x = $("<h3>").text(result.type);
-            x.append($("<p>").text(result.description));
-            throwError(x);
-        } else {
-            if (result.warnings) {
-                var x = $("<div>");
-                x.append($("<h3>").text("Some warnings occured. Prediction may be unreliable."));
-                for (var key in result.warnings)
-                {
-                    var w = result.warnings[key];
-                    x.append($("<p>").text(w.description + " (" + w.count = ")"))
-                }
-                throwError(x);
-                setTimeout(function () { toggleWindow("scenario_template", "showHideDebug", "Show Debug", "Hide Debug", "show");}, 100);
-            }
+    $.ajax({
+        url: "/api/predict", 
+        data: req_obj,
+        success: function (result) {
             resetGUI();
-            displayPrediction(result);
+            still_predicting = false;
+
+            if (result.error) {
+                var x = $("<h3>").text(result.type);
+                x.append($("<p>").text(result.description));
+                throwError(x);
+            } else {
+                displayPrediction(req_obj, result);
+            }
+        },
+        error: function (_xhr, _stat, msg) {
+            still_predicting = false;
+            resetGUI();
+            throwError($("<p>").text(msg));
         }
     });
 }
@@ -133,7 +169,21 @@ function displayPrediction(prediction_request, result_from_server) {
     var launch_time;
     var land_time;
 
-    var stages = result_from_server.predictions[0].prediction;
+    var prediction = result_from_server.predictions[0];
+
+    if (prediction.warnings) {
+        var x = $("<div>");
+        x.append($("<h3>").text("Some warnings occured. Prediction may be unreliable."));
+        for (var key in prediction.warnings)
+        {
+            var w = prediction.warnings[key];
+            x.append($("<p>").text(w.description + " (" + w.count + ")"));
+        }
+        throwError(x);
+        setTimeout(function () { toggleWindow("scenario_template", "showHideDebug", "Show Debug", "Hide Debug", "show");}, 100);
+    }
+
+    var stages = prediction.prediction; // :-(
 
     $.each(stages, function(_idx, stage) { 
         if (stage.stage == "launch") {
@@ -156,7 +206,7 @@ function displayPrediction(prediction_request, result_from_server) {
             $.each(stage.path, function (_idx2, point) {
                 var point = new google.maps.LatLng(point.latitude, point.longitude);
                 path.push(point);
-            }
+            });
         }
     });
 
@@ -165,9 +215,9 @@ function displayPrediction(prediction_request, result_from_server) {
     
     // Calculate range and time of flight
     var range = distHaversine(launch_pt, land_pt, 1);
-    var flighttime = Date.parse(land_time) - Date.parse(launch_time);
-    var f_hours = Math.floor((flighttime % 86400) / 3600);
-    var f_minutes = Math.floor(((flighttime % 86400) % 3600) / 60);
+    var flighttime = (Date.parse(land_time) - Date.parse(launch_time)) / 1000;
+    var f_hours = Math.floor(flighttime / 3600);
+    var f_minutes = Math.floor((flighttime % 3600) / 60);
     if ( f_minutes < 10 ) f_minutes = "0"+f_minutes;
     flighttime = f_hours + "hr" + f_minutes;
     $("#cursor_pred_range").html(range);
@@ -192,19 +242,24 @@ function displayPrediction(prediction_request, result_from_server) {
         new google.maps.Point(0, 0),
         new google.maps.Point(8, 8)
     );
-      
+
+    function short_time(rfc3339) {
+        var d = new Date(rfc3339);
+        return sprintf("%02i:%02i UTC", d.getUTCHours(), d.getUTCMinutes());
+    }
+
     var launch_marker = new google.maps.Marker({
         position: launch_pt,
         map: map,
         icon: launch_icon,
-        title: 'Balloon launch ('+launch_lat+', '+launch_lon+') at ' + launch_time + "UTC"
+        title: 'Balloon launch ('+launch_lat+', '+launch_lon+') at ' + short_time(launch_time)
     });
 
     var land_marker = new google.maps.Marker({
         position: land_pt,
         map:map,
         icon: land_icon,
-        title: 'Predicted Landing ('+land_lat+', '+land_lon+') at ' + land_time + "UTC"
+        title: 'Predicted Landing ('+land_lat+', '+land_lon+') at ' + short_time(land_time)
     });
 
     var pop_marker = new google.maps.Marker({
@@ -212,7 +267,7 @@ function displayPrediction(prediction_request, result_from_server) {
             map: map,
             icon: burst_icon,
             title: 'Balloon burst (' + burst_lat + ', ' + burst_lon 
-                + ' at altitude ' + burst_alt + 'm) at ' + burst_time + "UTC"
+                + ' at altitude ' + burst_alt + 'm) at ' + short_time(burst_time)
     });
 
     var path_polyline = new google.maps.Polyline({
@@ -263,7 +318,12 @@ $(document).ready(function() {
     
     // Check if an old prediction is to be displayed, and process if so
     var url_scenario = unpackURL();
-    if (url_scenario) requestPrediction(url_scenario);
+    if (url_scenario) {
+        populateFormFromReq(url_scenario);
+        requestPrediction(url_scenario);
+    } else {
+        populateDefaultLaunchTime();
+    }
 
     // Plot the initial launch location
     plotClick();

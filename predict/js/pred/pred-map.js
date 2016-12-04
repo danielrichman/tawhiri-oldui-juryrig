@@ -52,7 +52,7 @@ function showMousePos(GLatLng) {
     $("#cursor_lon").html(curr_lon);
     // if we have a prediction displayed
     // show range from launch and land:
-    if ( current_uuid != 0 && map_items['launch_marker'] != null ) {
+    if ( map_items['launch_marker'] != null ) {
         var launch_pt = map_items['launch_marker'].position;
         var land_pt = map_items['land_marker'].position;
         var range_launch = distHaversine(launch_pt, GLatLng, 1);
@@ -60,7 +60,6 @@ function showMousePos(GLatLng) {
         $("#cursor_pred_launchrange").html(range_launch);
         $("#cursor_pred_landrange").html(range_land);
     }
-    
 }
 
 // Read the latitude and longitude currently in the launch card and plot
