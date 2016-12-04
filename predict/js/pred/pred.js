@@ -8,101 +8,17 @@
  *
  */
 
-// TODO: proper rfc3339
-function validateDate(s) {
-    if (s.length != 'YYYY-MM-DDTHH:MM:SSZ'.length)
-        return false;
-
-    var d;
-
-    try {
-        d = new Date(s);
-    } catch (exn) {
-        return false;
-    }   
-
-    if (isNaN(d.getUTCMinutes()))
-        return false;
-
-    return true;
-}
-
-// Tries to unpack parameters from the URL, if we can. Otherwise null
-function unpackURL() {
-    if (!document.location.search)
-        return null;
-
-    var s = "" + document.location.search;
-    s.split(",");
-    
-    if (s.length != 7)
-        return null;
-
-    if (!validateDate(s[3]))
-        return null;
-
-    var r = 
-        { launch_latitude  : +s[0]
-        , launch_longitude : +s[1]
-        , launch_altitude  : +s[2]
-        , launch_datetime  : s[3]
-        , ascent_rate      : +s[4]
-        , burst_altitude   : +s[5]
-        , descent_rate     : +s[6]
-        };
-
-    for (var key in r)
-        if (isNaN(r[key]))
-            return null;
-
-    return r;
-}
-
-function packURL(obj) {
-    var r = 
-        [ obj.launch_latitude 
-        , obj.launch_longitude
-        , obj.launch_altitude 
-        , obj.launch_datetime
-        , obj.ascent_rate    
-        , obj.burst_altitude
-        , obj.descent_rate 
-        ];
-
-    return r.join(",");
-}
-
-function pushToHistoryAndRequestPrediction(obj) {
-    window.history.pushState(null, null, "?" + packURL(obj));
-    requestPrediction(obj);
-}
-
-function populateFormFromReq(obj) {
-    $("#lat").val(obj.launch_latitude);
-    $("#lon").val(obj.launch_longitude);
-    $("#initial_alt").val(obj.launch_altitude);
-    var date = new Date(obj.launch_datetime);
-    $("#year").val(date.getUTCFullYear());
-    $("#month").val(date.getUTCMonth());
-    $("#day").val(date.getUTCDate());
-    $("#hour").val(date.getUTCHours());
-    $("#minute").val(date.getUTCMinutes());
-    $("#ascent").val(obj.ascent_rate);
-    $("#descent").val(obj.descent_rate);
-    $("#burst").val(obj.burst_altitude);
-}
-
 function populateDefaultLaunchTime() {
     // lat and lon are populated by default with the first location
     var date = new Date(Date.now() + 3600*1000);
     $("#year").val(date.getUTCFullYear());
     $("#month").val(date.getUTCMonth() + 1);
-    $("#day").val(date.getUTCDate());
-    $("#hour").val(date.getUTCHours());
-    $("#min").val(date.getUTCMinutes());
+    $("#day").val(sprintf("%02i", date.getUTCDate()));
+    $("#hour").val(sprintf("%02i", date.getUTCHours()));
+    $("#min").val(sprintf("%02i", date.getUTCMinutes()));
 }
 
-function requestPrediction(req_obj) {
+function request_prediction(req_obj) {
     appendDebug(null, 1); // clear debug window
     appendDebug("Sending data to server...");
     // Disable form
@@ -114,7 +30,11 @@ function requestPrediction(req_obj) {
 
     var still_predicting = true;
 
-    function showPredictingWindow() {
+    // Defer fading the map out for 500ms. The server is often pretty
+    // fast, and it looks kinda weird to fade out and in so fast.
+    // If the server doesn't reply in 500ms, chances are it will be 
+    // multiple seconds.
+    function show_predicting_window() {
         if (!still_predicting) return;
 
         $("#prediction_status").html("Predicting...");
@@ -125,34 +45,47 @@ function requestPrediction(req_obj) {
         $("#map_canvas").fadeTo(1000, 0.2);
     }
 
-    setTimeout(showPredictingWindow, 500);
+    setTimeout(show_predicting_window, 500);
+
+    function display_error(error) {
+        var x = $("<div>");
+        x.append($("<h3>").text(error.type));
+        x.append($("<p>").text(error.description));
+        throwError(x);
+    }
 
     $.ajax({
         url: "/api/predict", 
         data: req_obj,
         success: function (result) {
-            resetGUI();
             still_predicting = false;
+            resetGUI();
 
             if (result.error) {
-                var x = $("<h3>").text(result.type);
-                x.append($("<p>").text(result.description));
-                throwError(x);
+                display_error(result.error);
             } else {
-                displayPrediction(req_obj, result);
+                display_prediction(req_obj, result);
             }
         },
-        error: function (_xhr, _stat, msg) {
+        error: function (xhr, _stat, msg) {
             still_predicting = false;
             resetGUI();
-            throwError($("<p>").text(msg));
+
+            try {
+                var result = JSON.parse(xhr.responseText);
+                if (result.error === undefined) 
+                    throw "JSON error should have error property";
+                display_error(result.error);
+            } catch(_exn) {
+                display_error({type: "AJAX Error", description:msg});
+            }
         }
     });
 }
 
 // Constructs the path, plots the launch/land/burst markers, writes the
 // prediction information to the scenario information window
-function displayPrediction(prediction_request, result_from_server) {
+function display_prediction(prediction_request, result_from_server) {
     var path = [];
 
     var launch_lat;
@@ -310,17 +243,14 @@ $(document).ready(function() {
     // Populate the launch site list from sites.json
     populateLaunchSite();
 
-    // Setup all event handlers in the UI using jQuery
-    setupEventHandlers();
-
     // Initialise UI elements such as draggable windows
     initUI();
     
     // Check if an old prediction is to be displayed, and process if so
-    var url_scenario = unpackURL();
+    var url_scenario = read_request_object_from_current_url();
     if (url_scenario) {
-        populateFormFromReq(url_scenario);
-        requestPrediction(url_scenario);
+        overwrite_form_with_request_object(url_scenario);
+        request_prediction(url_scenario);
     } else {
         populateDefaultLaunchTime();
     }
@@ -330,6 +260,34 @@ $(document).ready(function() {
 
     // Initialise the burst calculator
     calc_init();
+
+    // pred-ui concerns itself with the human/non-business bits of the UI and
+    // adds most of the event handlers. Prediction requests are handled here.
+
+    $("#modelForm").submit(function (evt) {
+        evt.preventDefault();
+
+        var req;
+
+        try {
+            req = read_request_object_from_form();
+        } catch (e) {
+            throwError(e);
+            return;
+        }
+
+        push_request_object_to_history(req);
+        request_prediction(req);
+    }); 
+
+    // Watch history
+    window.onpopstate = function() {
+        var url_scenario = read_request_object_from_current_url();
+        if (url_scenario) {
+            overwrite_form_with_request_object(url_scenario);
+            request_prediction(url_scenario);
+        }
+    }
 });
 
 // Clear the Launch Site dropdown and repopulate it with the information from
