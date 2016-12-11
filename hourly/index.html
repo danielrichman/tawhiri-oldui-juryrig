@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CUSF Hourly Predictor</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <style type="text/css">
+      h1 { margin: 50px 0; text-align: center; }
+      .form-inline { text-align: center; }
+    </style>
+  </head>
+  <body>
+
+<div class="row">
+  <div class="span12">
+
+    <h1>Hourly Predictor</h1>
+
+    <div class="alert alert-error alert-block" id="general-errors-container">
+        <h4>Error</h4>
+        <ul id="general-errors"></ul>
+    </div>
+    
+    <form method="GET" action="predict.html" id="editor-form" class="form-horizontal">
+      <legend>Launch site</legend>
+    
+      <div class="control-group" id="grp-launch_latitude">
+        <label class="control-label" for="launch_latitude">Latitude</label>
+        <div class="controls">
+          <input type="text" name="launch_latitude" id="launch_latitude">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <div class="control-group" id="grp-launch_longitude">
+        <label class="control-label" for="launch_longitude">Longitude</label>
+        <div class="controls">
+          <input type="text" name="launch_longitude" id="launch_longitude">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <div class="control-group" id="grp-launch_altitude">
+        <label class="control-label" for="launch_altitude">Altitude</label>
+        <div class="controls">
+          <input type="text" name="launch_altitude" id="launch_altitude">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <legend>Altitude model settings</legend>
+    
+      <div class="control-group" id="grp-ascent_rate">
+        <label class="control-label" for="ascent_rate">Ascent rate</label>
+        <div class="controls">
+          <input type="text" id="ascent_rate" name="ascent_rate">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <div class="control-group" id="grp-descent_rate">
+        <label class="control-label" for="ascent_rate">Descent rate</label>
+        <div class="controls">
+          <input type="text" id="descent_rate" name="descent_rate">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <div class="control-group" id="grp-burst_altitude">
+        <label class="control-label" for="burst_altitude">Burst altitude</label>
+        <div class="controls">
+          <input type="text" id="burst_altitude" name="burst_altitude">
+          <span class="help-inline"></span>
+        </div>
+      </div>
+    
+      <div class="control-group">
+        <div class="controls">
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="js/params.js"></script>
+<script src="js/form.js"></script>
+
+  </body>
+</html>

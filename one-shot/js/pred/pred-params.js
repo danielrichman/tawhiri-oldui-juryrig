@@ -118,7 +118,7 @@ function push_request_object_to_history(obj) {
     window.history.pushState(null, null, "?" + request_object_to_packed_url(obj));
 }
 
-function overwrite_form_with_request_object(obj) {
+function overwrite_one_shot_form_with_request_object(obj) {
     $("#lat").val(obj.launch_latitude);
     $("#lon").val(obj.launch_longitude);
     $("#initial_alt").val(obj.launch_altitude);
@@ -133,20 +133,28 @@ function overwrite_form_with_request_object(obj) {
     $("#burst").val(obj.burst_altitude);
 }
 
-function read_request_object_from_form() {
+function read_request_object_from_one_shot_form() {
+    function num(selector) {
+        var val = $(selector).val();
+        if (val === "") 
+            return NaN;
+        else 
+            return +val;
+    }   
+
     var launch_datetime =
         sprintf("%04i-%02i-%02iT%02i:%02i:%02iZ",
-            $("#year").val(), $("#month").val(), $("#day").val(),
-            $("#hour").val(), $("#min").val(), 0);
+            num("#year"), num("#month"), num("#day"),
+            num("#hour"), num("#min"), 0);
 
     var r = 
-        { launch_latitude  : +$("#lat").val()
-        , launch_longitude : +$("#lon").val()
-        , launch_altitude  : +$("#initial_alt").val()
+        { launch_latitude  : num("#lat")
+        , launch_longitude : num("#lon")
+        , launch_altitude  : num("#initial_alt")
         , launch_datetime  : launch_datetime
-        , ascent_rate      : +$("#ascent").val() 
-        , burst_altitude   : +$("#burst").val() 
-        , descent_rate     : +$("#descent").val() 
+        , ascent_rate      : num("#ascent") 
+        , burst_altitude   : num("#burst") 
+        , descent_rate     : num("#descent") 
         };  
 
     assert_request_object_valid(r);

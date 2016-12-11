@@ -249,7 +249,7 @@ $(document).ready(function() {
     // Check if an old prediction is to be displayed, and process if so
     var url_scenario = read_request_object_from_current_url();
     if (url_scenario) {
-        overwrite_form_with_request_object(url_scenario);
+        overwrite_one_shot_form_with_request_object(url_scenario);
         request_prediction(url_scenario);
     } else {
         populateDefaultLaunchTime();
@@ -270,7 +270,7 @@ $(document).ready(function() {
         var req;
 
         try {
-            req = read_request_object_from_form();
+            req = read_request_object_from_one_shot_form();
         } catch (e) {
             throwError(e);
             return;
@@ -284,7 +284,7 @@ $(document).ready(function() {
     window.onpopstate = function() {
         var url_scenario = read_request_object_from_current_url();
         if (url_scenario) {
-            overwrite_form_with_request_object(url_scenario);
+            overwrite_one_shot_form_with_request_object(url_scenario);
             request_prediction(url_scenario);
         }
     }
