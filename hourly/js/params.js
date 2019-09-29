@@ -23,14 +23,11 @@ function request_object_problems(obj) {
         assert_legal_number(x);
         if (x < -180 || x > 360) throw "Illegal longitude (should be decimal degrees)";
     }
-    function pass(x) {}
 
     var checks =
         { launch_latitude  : sane_lat
         , launch_longitude : sane_lon
         , launch_altitude  : sane_alt
-        , launch_datetime  : pass
-        , include_paths    : pass
         , ascent_rate      : sane_rate
         , burst_altitude   : sane_alt
         , descent_rate     : sane_rate
@@ -75,10 +72,7 @@ function read_request_object_from_current_url() {
         , descent_rate     : true
         };
 
-    var req_obj = 
-        { launch_datetime: "hourly"
-        , include_paths: "none"
-        };
+    var req_obj = {};
 
     for (var i = 0; i < query_string.length; i++) {
         var pair = query_string[i].split("=");
@@ -123,8 +117,6 @@ function unvalidated_read_request_object_from_hourly_form() {
         { launch_latitude  : num("#launch_latitude")
         , launch_longitude : num("#launch_longitude")
         , launch_altitude  : num("#launch_altitude")
-        , launch_datetime  : "hourly"
-        , include_paths    : "none"
         , ascent_rate      : num("#ascent_rate")
         , descent_rate     : num("#descent_rate")
         , burst_altitude   : num("#burst_altitude")
